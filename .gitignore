@@ -1,0 +1,10 @@
+/build
+/.gradle
+/.settings
+/bin
+/.vscode
+/.classpath
+/.project
+/build.ninja
+/.ninja_log
+/.ninja_deps

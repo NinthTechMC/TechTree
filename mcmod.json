@@ -1,0 +1,21 @@
+{
+    "modid": "techtree",
+    "java": 8,
+    "template": "forge-1.7.10",
+    "version": "1.0.0",
+    "_coremod": "remove the _ and put the coremod class here",
+    "name": "Tech Tree",
+    "description": "Configurable tech tree guide books",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+        "Pistonight"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": [],
+    "libs": [
+        
+    ]
+}

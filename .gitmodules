@@ -1,0 +1,4 @@
+[submodule "mcmod-forge-1.7.10"]
+	path = forge
+	url = https://github.com/BlockPiston/mcmod-forge-1.7.10
+	branch = main
