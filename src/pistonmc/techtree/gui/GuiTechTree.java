@@ -3,6 +3,7 @@ package pistonmc.techtree.gui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import net.minecraft.util.StatCollector;
 import pistonmc.techtree.adapter.IGuiHost;
 import pistonmc.techtree.data.CategoryData;
 import pistonmc.techtree.data.ItemData;
@@ -13,7 +14,8 @@ import pistonmc.techtree.data.ProgressClient.CategoryState;
  * Handler for the guide book GUI
  */
 public class GuiTechTree {
-    private static final String TEXTURE = "textures/gui/book.png";
+    private static final String TEXTURE = "textures/gui/book2.png";
+    private static final String PAGING_KEY = "techtree.gui.paging";
     private static final int GRID_LEFT = 6;
     private static final int GRID_TOP = 27;
     private static final int GRID_WIDTH = 100;
@@ -25,28 +27,38 @@ public class GuiTechTree {
     public static final int CATEGORES_PER_PAGE = GRID_HEIGHT / CATEGORY_HEIGHT;
     public static final int ITEMS_PER_PAGE = (GRID_HEIGHT / ITEM_SIZE) * (GRID_WIDTH / ITEM_SIZE);
 
-    public static final int WIDTH = 222;
+    public static final int WIDTH = 256;
     public static final int HEIGHT = 212;
+
+    public static final int ITEM_BLOCK_V = HEIGHT + GuiButton.HEIGHT;
+
+    public static final int PAGE_NUM_Y = 197;
 
     private GuiState state;
     private ProgressClient progress;
     private IGuiHost host;
 
     private List<GuiButton> buttons;
+    private GuiButton contentPrevButton;
+    private GuiButton contentNextButton;
     private GuiButton returnToIndexButton;
     private List<ItemData> displayedItems;
     private List<CategoryData> displayedCategories;
+    private String currentDisplayedPageId;
+    private List<GuiPage> currentDisplayedPages;
 
     public GuiTechTree(ProgressClient client, GuiState state, IGuiHost host) {
         this.progress = client;
         this.state = state;
         this.host = host;
-        this.returnToIndexButton = new GuiButton(this.host, 85, 6, GuiButton.OVERLAY_LIST, this::handleReturnToIndex);
+        this.returnToIndexButton = new GuiButton(this.host, 117, 191, GuiButton.OVERLAY_LIST, this::handleReturnToIndex);
+        this.contentPrevButton = new GuiButton(this.host, 207, 191, GuiButton.OVERLAY_LEFT, this::handleContentPrevPage);
+        this.contentNextButton = new GuiButton(this.host, 229, 191, GuiButton.OVERLAY_RIGHT, this::handleContentNextPage);
         this.buttons = Arrays.asList(
-            new GuiButton(this.host, 5, 191, GuiButton.OVERLAY_LEFT, this::handleListPrevPage),
+            new GuiButton(this.host, 63, 191, GuiButton.OVERLAY_LEFT, this::handleListPrevPage),
             new GuiButton(this.host, 85, 191, GuiButton.OVERLAY_RIGHT, this::handleListNextPage),
-            new GuiButton(this.host, 116, 191, GuiButton.OVERLAY_LEFT, this::handleContentPrevPage),
-            new GuiButton(this.host, 195, 191, GuiButton.OVERLAY_RIGHT, this::handleContentNextPage),
+            this.contentPrevButton,
+            this.contentNextButton,
             this.returnToIndexButton
         );
         this.returnToIndexButton.setVisible(false);
@@ -62,11 +74,23 @@ public class GuiTechTree {
     }
 
     /**
+     * Called on mouse click
+     *
+     * (mx, my) is the mouse position on the screen
+     */
+    public void onMouseClick(int mx, int my, int mouseButton) {
+        for (GuiButton button : this.buttons) {
+            button.onClick(mx - this.host.getLeft(), my - this.host.getTop());
+        }
+    }
+
+    /**
      * Draw the background
      *
      * (mx, my) is the mouse position on the screen
      */
     public void drawBackground(int mx, int my) {
+        this.updateWidgets();
         int left = this.host.getLeft();
         int top = this.host.getTop();
 
@@ -82,14 +106,54 @@ public class GuiTechTree {
         } else {
             this.drawItemsBackground(mx, my);
         }
+
+        // Page content
+        GuiPage page = this.currentDisplayedPages.get(this.state.currentContentPage);
+        page.drawPageBackground();
+    }
+
+    private void updateWidgets() {
+        this.ensurePageContentSync();
+        int displayedPageCount = this.currentDisplayedPages.size();
+
+        this.contentPrevButton.setEnabled(this.state.currentContentPage > 0);
+        this.contentNextButton.setEnabled(this.state.currentContentPage < displayedPageCount - 1);
     }
 
     /**
-     * Draw the category and item widgets
+     * Draw the item layer
      *
      * (mx, my) is the mouse position on the screen
      */
-    public void drawWidgets(int mx, int my) {
+    public void drawItemLayer(int mx, int my) {
+    }
+
+    /**
+     * Draw the text layer
+     *
+     * (mx, my) is the mouse position on the screen
+     */
+    public void drawTextLayer(int mx, int my) {
+        int left = this.host.getLeft();
+        int top = this.host.getTop();
+        // Page content
+        GuiPage page = this.currentDisplayedPages.get(this.state.currentContentPage);
+        page.drawPageText();
+
+        // Page content page number
+        int xRight = 203;
+        String pageNumStr = StatCollector.translateToLocalFormatted(PAGING_KEY, this.state.currentContentPage + 1, this.currentDisplayedPages.size());
+        this.host.drawString(pageNumStr, left + xRight - this.host.getStringWidth(pageNumStr), top + PAGE_NUM_Y);
+
+    }
+
+    /**
+     * Draw the foreground (texture) layer. This is used to add checkmarks
+     * and (!) marks as well as tooltips
+     *
+     * (mx, my) is the mouse position on the screen
+     */
+    public void drawForegroundLayer(int mx, int my) {
     }
 
     private void drawCategoriesBackground(int mx, int my) {
@@ -153,12 +217,28 @@ public class GuiTechTree {
         this.state.handleListNextPage(listSize, increment);
     }
     public void handleContentPrevPage() {
+        this.ensurePageContentSync();
         this.state.handleContentPrevPage();
+        this.currentDisplayedPages.get(this.state.currentContentPage).onSwitchTo();
     }
     public void handleContentNextPage() {
+        this.ensurePageContentSync();
+        this.state.handleContentNextPage(this.currentDisplayedPages.size());
+        this.currentDisplayedPages.get(this.state.currentContentPage).onSwitchTo();
+    }
+    private void ensurePageContentSync() {
         String pageId = this.state.getCurrentPage();
-        String[][] pages = this.progress.getText(pageId);
-        this.state.handleContentNextPage(pages.length);
+        boolean updated = false;
+        if (this.currentDisplayedPages == null || !pageId.equals(this.currentDisplayedPageId)) {
+            String[] text = this.progress.getText(pageId);
+            GuiPageBuilder builder = new GuiPageBuilder(this.host);
+            this.currentDisplayedPages = builder.buildPages(text);
+            updated = true;
+        }
+        this.state.ensureContentPageRange(this.currentDisplayedPages.size());
+        if (updated) {
+            this.currentDisplayedPages.get(this.state.currentContentPage).onSwitchTo();
+        }
     }
     public void handleReturnToIndex() {
         this.state.handleReturnToIndex();

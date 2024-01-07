@@ -63,9 +63,9 @@ public class ModClient implements IModInstance {
         FMLCommonHandler.instance().bus().register(new ClientObtainItemHandler(this.progress));
 
         this.integratedServer.registerItemGuideBook(new GuideBook(false, this.tree).setProgressClient(this.progress));
-        this.integratedServer.registerItemGuideBook(new GuideBook(true, this.tree).setProgressClient(this.progress));
+        ItemGuideBook debugBook = this.integratedServer.registerItemGuideBook(new GuideBook(true, this.tree).setProgressClient(this.progress));
 
-        this.integratedServer.initGui(this.progress);
+        this.integratedServer.initGui(this.progress, debugBook);
     }
 
     @Override

@@ -2,6 +2,7 @@ package pistonmc.techtree.mc7.gui;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import pistonmc.techtree.data.ProgressClient;
@@ -9,9 +10,11 @@ import pistonmc.techtree.gui.GuiState;
 
 public class GuiHandler implements IGuiHandler{
     private ProgressClient progress;
+    private Item debugItem;
 
-    public GuiHandler(ProgressClient progress) {
+    public GuiHandler(ProgressClient progress, Item debugItem) {
         this.progress = progress;
+        this.debugItem = debugItem;
     }
 
     @Override
@@ -31,6 +34,7 @@ public class GuiHandler implements IGuiHandler{
         if (stack == null) {
             return null;
         }
-        return new GuiHost(this.progress, new GuiState());
+        boolean isDebug = stack.getItem() == this.debugItem;
+        return new GuiHost(this.progress, new GuiState(isDebug));
     }
 }

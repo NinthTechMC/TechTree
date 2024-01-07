@@ -40,10 +40,6 @@ public class ItemData {
         return this.tree.getCategory(this.getCategoryId());
     }
 
-    public String[][] getText() {
-        return this.tree.getText(this.id);
-    }
-
     public String toString() {
         return "Item(" + id + ")";
     }

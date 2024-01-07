@@ -1,8 +1,10 @@
 package pistonmc.techtree.gui;
 
+import pistonmc.techtree.adapter.IGuiHost;
+
 public class GuiState {
     /** If debug mode is enabled */
-    public boolean isDebug;
+    public final boolean isDebug;
     /** Id of the page currently displaying */
     private String currentPage;
     /** Index of the first item to display in the categories list */
@@ -12,6 +14,9 @@ public class GuiState {
     /** Page of the content currently displaying */
     public int currentContentPage;
 
+    public GuiState(boolean isDebug) {
+        this.isDebug = isDebug;
+    }
 
     public void handleListPrevPage() {
         if (this.isOnCategoryList()) {
@@ -26,6 +31,10 @@ public class GuiState {
             return;
         }
         this.currentListStart += increment;
+    }
+
+    public void ensureContentPageRange(int listSize) {
+        this.currentContentPage = Math.max(0, Math.min(this.currentContentPage, listSize - 1));
     }
 
     public void handleContentPrevPage() {
@@ -59,5 +68,9 @@ public class GuiState {
     public void handleEnterItem(String id) {
         this.currentPage = id;
         this.currentContentPage = 0;
+    }
+
+    private void updateDisplayPages() {
+        String pageId = this.getCurrentPage();
     }
 }

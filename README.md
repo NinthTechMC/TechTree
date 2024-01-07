@@ -74,7 +74,7 @@ the guide book will display `(completed)/(total)` for categories
 ### File Format
 This mod uses a custom config text format for its entries. The format is similar to TOML or INI,
 where `[]` are used to denote a section. Section orders are not significant with one exception being
-`[text]`
+`[text]`. Whitespaces are also trimmed except for the text section
 
 ### Item Format
 Items in the config are specified as `modid:name:meta`. `meta` is optional, and can be:
@@ -88,10 +88,25 @@ When specifying an icon, the first valid value in meta is used (0 if wildcard)
 ### Text Format
 The main text for item entries, categories and the index entry are denoted in the `[text]` section.
 `[text]` must be the last section in the config file, and all content afterwards are part of the text.
-Text content are paginated automatically, or you can use `---` to manually break a page.
 
-All whitespaces are significant in the text section, and not significant in all other sections.
-Blank lines are also ignored in other sections
+The text section has automatic line break and pagination. You can also control the line breaks
+in a way similar to markdown, where one newline doesn't break a paragraph, but multiple does.
+Consecutive newlines are also kept as empty lines.
+
+For pagination, you can manually insert page breaks with `---` on a line by itself.
+
+You can also display items in the text section. The syntax is:
+```
+<|>modid:name:meta stackSize<|>
+```
+Examples:
+```
+<|>minecraft:stone<|>
+<|>minecraft:log:1<|>
+<|>minecraft:log 2<|>
+<|>minecraft:log:2 2<|>
+```
+Multiple items can be put in the same line following the same line break practice.
 
 ### Comments
 With the exception of the text section, content after the first `#` is ignored on all lines.

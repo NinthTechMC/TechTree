@@ -25,7 +25,7 @@ public class TechTree {
 	private long lastCacheTime = 0;
     private boolean hasError = false;
     /** text entry id (category and item) to text section */
-    private final HashMap<String, String[][]> textCache = new HashMap<>();
+    private final HashMap<String, String[]> textCache = new HashMap<>();
     /** category id to data */
     private final HashMap<String, CategoryData> categories = new HashMap<>();
     /** item full id to data */
@@ -317,13 +317,13 @@ public class TechTree {
 	}
 	
     @SideOnly(Side.CLIENT)
-	public String[][] getText(String id) {
+	public String[] getText(String id) {
 		long currentTime = System.currentTimeMillis();
 		if (this.lastCacheTime == 0 || currentTime - lastCacheTime > ITEM_CACHE_DURATION) {
 			this.lastCacheTime = currentTime;
 			this.textCache.clear();
 		}
-		String[][] text = textCache.get(id);
+		String[] text = textCache.get(id);
 		if (text != null) {
 			return text;
 		}

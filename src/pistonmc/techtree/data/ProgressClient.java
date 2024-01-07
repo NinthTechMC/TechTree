@@ -383,7 +383,7 @@ public class ProgressClient {
         return this.categoryStates.getOrDefault(id, CategoryState.HIDDEN);
     }
 
-    public String[][] getText(String id) {
+    public String[] getText(String id) {
         return this.tree.getText(id);
     }
 

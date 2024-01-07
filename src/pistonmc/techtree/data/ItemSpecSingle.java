@@ -9,8 +9,8 @@ import pistonmc.techtree.adapter.ISerializer;
 public class ItemSpecSingle {
     public static ItemSpecSingle EMPTY = new ItemSpecSingle("minecraft", "air", 0);
 
-	private String modid;
-	private String name;
+	public final String modid;
+	public final String name;
 	public final int meta;
 
 	public ItemSpecSingle(String modid, String name, int meta) {
@@ -42,5 +42,13 @@ public class ItemSpecSingle {
         String name = deserializer.readString();
         int meta = deserializer.readInt();
         return new ItemSpecSingle(modid, name, meta);
+    }
+
+    public static ItemSpecSingle parse(String input) {
+        ItemSpec spec = ItemSpec.parse(input);
+        if (spec == null) {
+            return null;
+        }
+        return spec.toSingle();
     }
 }

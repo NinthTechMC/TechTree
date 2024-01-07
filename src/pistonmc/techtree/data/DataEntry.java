@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import pistonmc.techtree.ModMain;
 
 public class DataEntry {
-    private static final int LINES_PER_PAGE = 14;
 
     static enum ReadState {
         TITLE,
@@ -20,7 +19,7 @@ public class DataEntry {
 
     static class WithText {
         DataEntry data;
-        String[][] text;
+        String[] text;
     }
 
     /**
@@ -91,11 +90,16 @@ public class DataEntry {
                         break;
                     case ICON:
                         icon = ItemSpec.parse(line);
+                        if (icon == null) {
+                            ModMain.log.error("Invalid item spec: " + line);
+                        }
                         break;
                     case ITEMS:
                         ItemSpec item = ItemSpec.parse(line);
                         if (item != null) {
                             items.add(item);
+                        } else {
+                            ModMain.log.error("Invalid item spec: " + line);
                         }
                         break;
                     case AFTER:
@@ -105,9 +109,9 @@ public class DataEntry {
                         break;
                 }
             }
-            String[][] text = null;
+            String[] text = null;
             if (includeText) {
-                text = readTextSection(reader);
+                text = readTextSection(file.getPath(), reader);
             }
             String[] titleArr = title.toArray(new String[title.size()]);
             ItemSpec[] itemsArr = items.toArray(new ItemSpec[items.size()]);
@@ -123,7 +127,7 @@ public class DataEntry {
     }
 
     /** Read only the text section of a file */
-    public static String[][] readTextFrom(File file) {
+    public static String[] readTextFrom(File file) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -131,11 +135,15 @@ public class DataEntry {
                     break;
                 }
             }
-            return readTextSection(reader);
+            return readTextSection(file.getPath(), reader);
         } catch(IOException e) {
             ModMain.error(e);
         }
-        return new String[0][];
+        return new String[] {
+            "Failed to read data",
+            "File: ",
+            file.getPath(),
+        };
     }
 
     /** 
@@ -143,30 +151,38 @@ public class DataEntry {
      *
      * The reader should be positioned at the beginning of the text section, excluding the header
      *
-     * Upon exception, what's read so far will be returned
+     * Upon exception, returns an error message
      */
-    private static String[][] readTextSection(BufferedReader reader) {
-        ArrayList<String[]> pages = new ArrayList<>();
-        ArrayList<String> currentPage = new ArrayList<>(); 
-        String line;
+    private static String[] readTextSection(String file, BufferedReader reader) {
+        ArrayList<StringBuilder> lines = new ArrayList<>(); 
         try {
+            String line;
             while ((line = reader.readLine()) != null) {
-                if (currentPage.size() >= LINES_PER_PAGE || line.trim().equals("---")) {
-                    String[] page = currentPage.toArray(new String[currentPage.size()]);
-                    pages.add(page);
-                    currentPage.clear();
+                String trimmed = line.trim();
+                if (trimmed.equals("---")) {
+                    lines.add(new StringBuilder(trimmed));
+                    lines.add(new StringBuilder());
                     continue;
                 }
-                currentPage.add(line);
+                if (trimmed.isEmpty()) {
+                    lines.add(new StringBuilder());
+                    continue;
+                }
+                if (lines.isEmpty()) {
+                    lines.add(new StringBuilder(line));
+                    continue;
+                }
+                lines.get(lines.size() - 1).append(line);
             }
         } catch(IOException e) {
-            e.printStackTrace();
+            ModMain.error(e);
+            return new String[] { "Failed to read text section", "File:", file };
         }
-		if (!currentPage.isEmpty()) {
-			String[] page = currentPage.toArray(new String[currentPage.size()]);
-			pages.add(page);
-		}
-        return pages.toArray(new String[pages.size()][]);
+        String[] result = new String[lines.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = lines.get(i).toString();
+        }
+        return result;
     }
 
 

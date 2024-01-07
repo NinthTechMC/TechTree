@@ -7,6 +7,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import pistonmc.techtree.ModInfo;
 import pistonmc.techtree.ModMain.IModInstance;
@@ -75,7 +76,7 @@ public class ModServer implements IModInstance {
         this.registerItemGuideBook(new GuideBook(false, this.tree));
         this.registerItemGuideBook(new GuideBook(true, this.tree));
 
-        this.initGui(null);
+        this.initGui(null, null);
     }
 
     public void initTechTreeProgress(TechTree tree) {
@@ -101,13 +102,14 @@ public class ModServer implements IModInstance {
         FMLCommonHandler.instance().bus().register(new InitProgressHandler(this));
     }
 
-    public void registerItemGuideBook(GuideBook book) {
+    public ItemGuideBook registerItemGuideBook(GuideBook book) {
         ItemGuideBook item = new ItemGuideBook(book);
         GameRegistry.registerItem(item, item.getRegistryName());
+        return item;
     }
 
-    public void initGui(ProgressClient progress) {
-        NetworkRegistry.INSTANCE.registerGuiHandler(ModInfo.ID, new GuiHandler(progress));
+    public void initGui(ProgressClient progress, Item debugItem) {
+        NetworkRegistry.INSTANCE.registerGuiHandler(ModInfo.ID, new GuiHandler(progress, debugItem));
     }
 
     @Override

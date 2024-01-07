@@ -1,6 +1,5 @@
 package pistonmc.techtree.data;
 
-import pistonmc.techtree.ModMain;
 import pistonmc.techtree.adapter.IDeserializer;
 import pistonmc.techtree.adapter.ISerializer;
 
@@ -15,7 +14,6 @@ public class ItemSpec {
 	public static ItemSpec parse(String input) {
 		String[] parts = input.split(":");
 		if (parts.length < 2) {
-			ModMain.log.error("Invalid item spec: " + input);
 			return null;
 		}
 		String modid = parts[0].trim();
@@ -24,7 +22,6 @@ public class ItemSpec {
 		if (parts.length > 2) {
             meta = IntervalUnion.parse(parts[2]);
             if (meta == null) {
-                ModMain.log.error("Invalid item spec: " + input);
                 return null;
             }
 		} else {
@@ -81,5 +78,9 @@ public class ItemSpec {
         String name = deserializer.readString();
         IntervalUnion meta = IntervalUnion.readFrom(deserializer);
         return new ItemSpec(modid, name, meta);
+    }
+
+    public ItemSpecSingle toSingle() {
+        return new ItemSpecSingle(modid, name, meta.anyValue());
     }
 }
