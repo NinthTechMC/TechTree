@@ -1,4 +1,4 @@
-package pistonmc.techtree.mc7;
+package pistonmc.techtree.mc7.event;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
@@ -12,7 +12,12 @@ import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import pistonmc.techtree.ModMain;
 import pistonmc.techtree.adapter.IPlayerServerSide;
 import pistonmc.techtree.data.ItemSpecSingle;
+import pistonmc.techtree.mc7.ModServer;
+import pistonmc.techtree.mc7.PlayerServerSide;
 
+/**
+ * Server-side event handler for obtaining items
+ */
 public class ObtainItemHandler {
     private ModServer server;
 
@@ -23,7 +28,6 @@ public class ObtainItemHandler {
     @SubscribeEvent
     public void onPickupItem(EntityItemPickupEvent event) {
         if (event.entityPlayer.worldObj.isRemote) {
-            // shouldn't happen, but just in case
             return;
         }
         this.handleObtainItem(event.entityPlayer, event.item.getEntityItem());
@@ -32,7 +36,6 @@ public class ObtainItemHandler {
     @SubscribeEvent
     public void onCraftItem(PlayerEvent.ItemCraftedEvent event) {
         if (event.player.worldObj.isRemote) {
-            // shouldn't happen, but just in case
             return;
         }
         this.handleObtainItem(event.player, event.crafting);
@@ -41,7 +44,6 @@ public class ObtainItemHandler {
     @SubscribeEvent
     public void onSmeltItem(PlayerEvent.ItemSmeltedEvent event) {
         if (event.player.worldObj.isRemote) {
-            // shouldn't happen, but just in case
             return;
         }
         this.handleObtainItem(event.player, event.smelting);

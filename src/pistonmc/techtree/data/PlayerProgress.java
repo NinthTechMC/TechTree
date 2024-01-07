@@ -33,19 +33,16 @@ public class PlayerProgress<TUnion extends ItemUnion> {
         return this.obtained;
     }
 
-    public void addNewPage(String pageId) {
-        this.newPages.add(pageId);
+    public void addNewPages(List<String> pageId) {
+        this.newPages.addAll(pageId);
     }
 
     public boolean removeNewPage(String pageId) {
         return this.newPages.remove(pageId);
     }
 
-    public void initNewPages(List<String> pages) {
+    public void clearNewPages() {
         this.newPages.clear();
-        for (String page: pages) {
-            this.newPages.add(page);
-        }
     }
 
     public boolean hasNewPage() {

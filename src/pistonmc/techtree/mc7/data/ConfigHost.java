@@ -1,4 +1,4 @@
-package pistonmc.techtree.mc7;
+package pistonmc.techtree.mc7.data;
 
 import java.io.File;
 import java.nio.file.Path;

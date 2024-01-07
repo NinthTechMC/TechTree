@@ -2,7 +2,7 @@ package pistonmc.techtree.mc7;
 
 import pistonmc.techtree.adapter.ILocaleLoader;
 
-public class ServerLocaleLoader implements ILocaleLoader {
+public class LocaleLoaderServer implements ILocaleLoader {
 
     @Override
     public String getCurrentLocale() {

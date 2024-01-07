@@ -1,4 +1,4 @@
-package pistonmc.techtree.mc7;
+package pistonmc.techtree.mc7.event;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;

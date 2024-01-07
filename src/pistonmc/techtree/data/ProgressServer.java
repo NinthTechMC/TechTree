@@ -2,6 +2,7 @@ package pistonmc.techtree.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import pistonmc.techtree.ModMain;
 import pistonmc.techtree.adapter.INetworkServer;
@@ -9,9 +10,11 @@ import pistonmc.techtree.adapter.IPlayerData;
 import pistonmc.techtree.adapter.IPlayerServerSide;
 import pistonmc.techtree.event.Msg;
 import pistonmc.techtree.event.MsgSyncInit;
-import pistonmc.techtree.event.MsgSyncInitPages;
 import pistonmc.techtree.event.MsgSyncObtainItem;
 
+/**
+ * Server progress manager that owns the progress for all players
+ */
 public class ProgressServer {
     private TechTree tree;
     private INetworkServer<Msg> network;
@@ -61,11 +64,25 @@ public class ProgressServer {
         return new MsgSyncObtainItem(item);
     }
 
+    /**
+     * Called when client notifies server that it has read a page
+     */
     public void onReadPage(IPlayerServerSide player, String pageId) {
         PlayerProgress<ItemUnionPaged> progress = this.ensureProgress(player);
         if (progress.removeNewPage(pageId)) {
+            ModMain.log.info("Player " + player.getClientPlayerName() + " read page " + pageId);
             player.markDirty();
         }
+    }
+
+    /**
+     * Called when client discovers new pages
+     */
+    public void onNewPages(IPlayerServerSide player, List<String> pageIds) {
+        PlayerProgress<ItemUnionPaged> progress = this.ensureProgress(player);
+        ModMain.log.info("Player " + player.getClientPlayerName() + " unlocked pages " + pageIds);
+        progress.addNewPages(pageIds);
+        player.markDirty();
     }
 
     public void sendProgressTo(IPlayerServerSide player) {
@@ -76,10 +93,18 @@ public class ProgressServer {
         ModMain.log.info("Sending progress to player " + name + " with correlation " + nextCorrelationId);
         ItemUnionPaged obtained = progress.getObtained();
         int pages = obtained.pages();
-        for (int i = 0; i < pages; i++) {
-            this.network.sendToPlayer(new MsgSyncInit(obtained, nextCorrelationId, i), player);
+        if (pages == 0) {
+            List<String> initEntryPages = new ArrayList<>(progress.getNewPages());
+            this.network.sendToPlayer(new MsgSyncInit(obtained, nextCorrelationId, 0, initEntryPages), player);
+        } else {
+            for (int i = 0; i < pages; i++) {
+                List<String> initEntryPages = null;
+                if (i == 0) {
+                    initEntryPages = new ArrayList<>(progress.getNewPages());
+                }
+                this.network.sendToPlayer(new MsgSyncInit(obtained, nextCorrelationId, i, initEntryPages), player);
+            }
         }
-        this.network.sendToPlayer(new MsgSyncInitPages(new ArrayList<>(progress.getNewPages())), player);
     }
 
     private PlayerProgress<ItemUnionPaged> ensureProgress(IPlayerServerSide player) {

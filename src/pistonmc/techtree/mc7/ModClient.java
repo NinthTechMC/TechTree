@@ -5,6 +5,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
 import pistonmc.techtree.ModMain.IModInstance;
@@ -13,6 +14,9 @@ import pistonmc.techtree.data.ProgressClient;
 import pistonmc.techtree.data.TechTree;
 import pistonmc.techtree.event.Msg;
 import pistonmc.techtree.event.MsgRegistry;
+import pistonmc.techtree.item.GuideBook;
+import pistonmc.techtree.mc7.data.ConfigHost;
+import pistonmc.techtree.mc7.event.ClientObtainItemHandler;
 
 @SideOnly(Side.CLIENT)
 public class ModClient implements IModInstance {
@@ -38,6 +42,16 @@ public class ModClient implements IModInstance {
     }
 
     @Override
+    public ModServer getServer() {
+        return this.integratedServer;
+    }
+
+    @Override
+    public TechTree getTechTree() {
+        return this.tree;
+    }
+
+    @Override
     public void preInit(FMLPreInitializationEvent event) {
         this.network = new Network();
         this.tree = new TechTree(new LocaleLoader(), new ConfigHost());
@@ -47,7 +61,11 @@ public class ModClient implements IModInstance {
         this.integratedServer.initTechTreeProgress(tree);
         this.integratedServer.initIntegratedServer();
         FMLCommonHandler.instance().bus().register(new ClientObtainItemHandler(this.progress));
-        
+
+        this.integratedServer.registerItemGuideBook(new GuideBook(false, this.tree).setProgressClient(this.progress));
+        this.integratedServer.registerItemGuideBook(new GuideBook(true, this.tree).setProgressClient(this.progress));
+
+        this.integratedServer.initGui(this.progress);
     }
 
     @Override
@@ -64,17 +82,5 @@ public class ModClient implements IModInstance {
 
     @Override
     public void complete(FMLLoadCompleteEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public ModServer getServer() {
-        return this.integratedServer;
-    }
-
-    @Override
-    public TechTree getTechTree() {
-        return this.tree;
     }
 }

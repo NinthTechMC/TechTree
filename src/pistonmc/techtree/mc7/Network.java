@@ -15,6 +15,7 @@ import pistonmc.techtree.adapter.INetworkServer;
 import pistonmc.techtree.adapter.IPlayerServerSide;
 import pistonmc.techtree.event.Msg;
 import pistonmc.techtree.event.MsgRegistry;
+import pistonmc.techtree.mc7.data.ByteBufWrapper;
 
 public class Network implements INetworkClient<Msg>, INetworkServer<Msg> {
     public boolean initialized = false;

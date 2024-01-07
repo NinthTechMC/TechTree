@@ -2,33 +2,78 @@ package pistonmc.techtree.data;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Map.Entry;
+import pistonmc.techtree.ModInfo;
 import pistonmc.techtree.ModMain;
 import pistonmc.techtree.adapter.INetworkClient;
 import pistonmc.techtree.event.Msg;
+import pistonmc.techtree.event.MsgPostNewPages;
 import pistonmc.techtree.event.MsgPostObtainItem;
 import pistonmc.techtree.event.MsgPostReadPage;
 
 public class ProgressClient {
     /** See README */
-    static enum ItemState {
+    public static enum ItemState {
         HIDDEN,
         DISCOVERED,
         UNLOCKED,
         COMPLETABLE,
-        COMPLETED,
+        COMPLETED;
+
+        public boolean isReadable() {
+            return this == COMPLETABLE || this == COMPLETED;
+        }
+
+        public int sortOrder() {
+            switch (this) {
+                case COMPLETABLE:
+                    return 0;
+                case UNLOCKED:
+                    return 1;
+                case DISCOVERED:
+                    return 2;
+                case COMPLETED:
+                    return 3;
+                case HIDDEN:
+                    return 4;
+                default:
+                    return 9;
+            }
+        }
     }
 
-    static enum CategoryState {
+    public static enum CategoryState {
         HIDDEN,
         DISCOVERED,
         UNLOCKED,
         PROGRESSED,
-        COMPLETED,
+        COMPLETED;
+
+        public boolean isReadable() {
+            return this == UNLOCKED || this == PROGRESSED || this == COMPLETED;
+        }
+
+        public int sortOrder() {
+            switch (this) {
+                case PROGRESSED:
+                case UNLOCKED:
+                    return 1;
+                case DISCOVERED:
+                    return 2;
+                case COMPLETED:
+                    return 3;
+                case HIDDEN:
+                    return 4;
+                default:
+                    return 9;
+            }
+        }
     }
 
     private TechTree tree;
@@ -57,10 +102,12 @@ public class ProgressClient {
     /**
      * Called when receiving init event from server
      */
-    public void onInitObtainedItems(List<ItemSpec> items, long correlation, int expectedSize) {
+    public void onInit(List<ItemSpec> items, long correlation, int expectedSize, List<String> initPages) {
+        ModMain.log.info("Received init event with correlation " + correlation + " and expected size " + expectedSize);
         if (this.correlation != correlation) {
             // self is outdated, start from fresh
             this.progress.getObtained().clear();
+            this.progress.clearNewPages();
             this.states.clear();
             this.categoryStates.clear();
             this.correlation = correlation;
@@ -70,10 +117,16 @@ public class ProgressClient {
         for (ItemSpec item: items) {
             obtained.union(item);
         }
+        if (!initPages.isEmpty()) {
+            ModMain.log.info("Received "+ initPages.size() + " new pages");
+            this.progress.addNewPages(initPages);
+        }
         if (obtained.size() >= expectedSize) {
+            ModMain.log.info("Received all items, finishing init");
+            // update initial state
+            this.refreshAllItems();
             // empty queued items
             this.isInitializing = false;
-            this.refreshAllItems();
             for (ItemSpecSingle item: this.queue) {
                 this.addObtainedItem(item);
             }
@@ -99,22 +152,14 @@ public class ProgressClient {
         }
     }
 
-    public void onNewPage(String pageId) {
-        this.progress.addNewPage(pageId);
-    }
-
-    public void onInitNewPages(List<String> pages) {
-        this.progress.initNewPages(pages);
-    }
-
     public void onReadPage(String pageId) {
         if (this.progress.removeNewPage(pageId)) {
             this.network.sendToServer(new MsgPostReadPage(pageId));
         }
     }
 
-    private void refreshAllItems() {
-        ModMain.log.info("Starting refresh all");
+    public void refreshAllItems() {
+        ModMain.log.info("Starting refreshing all items");
         long start = System.currentTimeMillis();
         Set<String> itemIds = this.tree.getAllEntryIds();
         this.refreshDirtyItems(itemIds);
@@ -173,7 +218,7 @@ public class ProgressClient {
      * All its descendants will be marked dirty as well
      */
     private void markItemDirty(ItemData item, Set<String> dirtyItemIds) {
-        if (dirtyItemIds.contains(item.id)) {
+        if (!dirtyItemIds.add(item.id)) {
             return;
         }
         for (ItemData descendant: item.getDescendants()) {
@@ -182,17 +227,25 @@ public class ProgressClient {
     }
 
     private void refreshDirtyItems(Set<String> dirtyItemIds) {
+        ModMain.log.info("Refreshing " + dirtyItemIds.size() + " dirty items");
         Set<String> dirtyCategoryIds = new HashSet<>();
+        List<String> newPages = new ArrayList<>();
+        Set<String> dirtyItemIdsCopy = new HashSet<>(dirtyItemIds);
         for (String itemId: new ArrayList<>(dirtyItemIds)) {
             ItemData entry = this.tree.getItem(itemId);
-            this.refreshItemStateAt(entry, dirtyItemIds, dirtyCategoryIds);
+            this.refreshItemStateAt(entry, dirtyItemIdsCopy, dirtyCategoryIds, newPages);
         }
         for (String category: dirtyCategoryIds) {
-            this.refreshCategoryState(this.tree.getCategory(category));
+            this.refreshCategoryState(this.tree.getCategory(category), newPages);
+        }
+        if (!newPages.isEmpty()) {
+            ModMain.log.info("New pages: " + newPages);
+            this.progress.addNewPages(newPages);
+            this.network.sendToServer(new MsgPostNewPages(newPages));
         }
     }
 
-    private void refreshItemStateAt(ItemData item, Set<String> dirtyItemIds, Set<String> dirtyCategoryIds) {
+    private void refreshItemStateAt(ItemData item, Set<String> dirtyItemIds, Set<String> dirtyCategoryIds, List<String> newPages) {
         if (!dirtyItemIds.contains(item.id)) {
             return;
         }
@@ -200,11 +253,15 @@ public class ProgressClient {
         dirtyItemIds.remove(item.id);
         // ensure dependencies are clean
         for (ItemData dep: item.getDependencies()) {
-            this.refreshItemStateAt(dep, dirtyItemIds, dirtyCategoryIds);
+            this.refreshItemStateAt(dep, dirtyItemIds, dirtyCategoryIds, newPages);
         }
         ItemState newState = this.computeStateForItem(item);
         ItemState oldState = this.getItemState(item.id);
         if (newState != oldState) {
+            if (!this.isInitializing && newState.isReadable() && !oldState.isReadable()) {
+                // item is now readable
+                newPages.add(item.id);
+            }
             this.states.put(item.id, newState);
             dirtyCategoryIds.add(item.getCategoryId());
         }
@@ -218,21 +275,25 @@ public class ProgressClient {
         boolean hasCompleted = false;
         boolean hasNotCompleted = false;
         // compute state
-        outer: for (ItemData dep: item.getDependencies()) {
-            ItemState depState = this.getItemState(dep.id);
-            switch (depState) {
-                // for item to be Discovered, all must be at least Unlocked
-                case HIDDEN:
-                case DISCOVERED:
-                    hasNotCompleted = true;
-                    newState = ItemState.HIDDEN;
+        if (item.getDependencies().length == 0) {
+            newState = ItemState.COMPLETABLE;
+        } else {
+            outer: for (ItemData dep: item.getDependencies()) {
+                ItemState depState = this.getItemState(dep.id);
+                switch (depState) {
+                    // for item to be Discovered, all must be at least Unlocked
+                    case HIDDEN:
+                    case DISCOVERED:
+                        hasNotCompleted = true;
+                        newState = ItemState.HIDDEN;
                     break outer;
-                case COMPLETED:
-                    hasCompleted = true;
+                    case COMPLETED:
+                        hasCompleted = true;
                     break;
-                default:
-                    hasNotCompleted = true;
+                    default:
+                        hasNotCompleted = true;
                     break;
+                }
             }
         }
         if (newState == ItemState.DISCOVERED && hasCompleted) {
@@ -259,7 +320,7 @@ public class ProgressClient {
     /**
      * Refresh a category's state. All items states must be up to date
      */
-    private void refreshCategoryState(CategoryData category) {
+    private void refreshCategoryState(CategoryData category, List<String> newPages) {
         ModMain.log.info("Refreshing: " + category.id);
         boolean hasDiscovered = false;
         boolean hasUnlocked = false;
@@ -304,7 +365,14 @@ public class ProgressClient {
                 state = CategoryState.COMPLETED;
             }
         }
-        this.categoryStates.put(category.id, state);
+        CategoryState oldState = this.getCategoryState(category.id);
+        if (state != oldState) {
+            if (!this.isInitializing && state.isReadable() && !oldState.isReadable()) {
+                // category is now readable
+                newPages.add(category.id);
+            }
+            this.categoryStates.put(category.id, state);
+        }
     }
 
     public ItemState getItemState(String id) {
@@ -313,5 +381,60 @@ public class ProgressClient {
 
     public CategoryState getCategoryState(String id) {
         return this.categoryStates.getOrDefault(id, CategoryState.HIDDEN);
+    }
+
+    public String[][] getText(String id) {
+        return this.tree.getText(id);
+    }
+
+    public boolean hasNewPages() {
+        return this.progress.hasNewPage();
+    }
+
+    public List<CategoryData> getSortedVisibleCategories(boolean isDebug) {
+        List<CategoryData> categories = new ArrayList<>(this.categoryStates.size());
+        for (Entry<String, CategoryState> entry: this.categoryStates.entrySet()) {
+            if (isDebug || entry.getValue() != CategoryState.HIDDEN) {
+                categories.add(this.tree.getCategory(entry.getKey()));
+            }
+        }
+        // sort
+        // categories are sorted in the order of 
+        // UNLOCKED/PROGRESSED, DISCOVERED, COMPLETED
+        // within each group, sort by id alphabetically
+        Collections.sort(categories, (a, b) -> {
+            int orderA = this.getCategoryState(a.id).sortOrder();
+            int orderB = this.getCategoryState(b.id).sortOrder();
+            if (orderA != orderB) {
+                return orderA - orderB;
+            }
+
+            return a.id.compareTo(b.id);
+        });
+
+        return categories;
+    }
+
+    public List<ItemData> getSortedVisibleItems(String categoryId, boolean isDebug) {
+        CategoryData category = this.tree.getCategory(categoryId);
+        List<ItemData> items = new ArrayList<>(category.items.length);
+
+        for (ItemData item: category.items) {
+            if (isDebug || this.getItemState(item.id) != ItemState.HIDDEN) {
+                items.add(item);
+            }
+        }
+
+        Collections.sort(items, (a, b) -> {
+            int orderA = this.getItemState(a.id).sortOrder();
+            int orderB = this.getItemState(b.id).sortOrder();
+            if (orderA != orderB) {
+                return orderA - orderB;
+            }
+
+            return a.id.compareTo(b.id);
+        });
+
+        return items;
     }
 }

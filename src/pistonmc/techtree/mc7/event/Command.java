@@ -1,4 +1,4 @@
-package pistonmc.techtree.mc7;
+package pistonmc.techtree.mc7.event;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +9,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.UserListOps;
 import net.minecraftforge.event.world.WorldEvent;
+import pistonmc.techtree.mc7.ModServer;
 
 public class Command implements ICommand {
 
@@ -34,7 +35,7 @@ public class Command implements ICommand {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/ttree reload";
+        return "/t[ech]tree reload";
     }
 
     @Override

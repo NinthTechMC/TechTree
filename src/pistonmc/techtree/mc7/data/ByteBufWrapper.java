@@ -1,4 +1,4 @@
-package pistonmc.techtree.mc7;
+package pistonmc.techtree.mc7.data;
 
 import io.netty.buffer.ByteBuf;
 import pistonmc.techtree.adapter.IDeserializer;
