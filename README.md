@@ -66,8 +66,10 @@ automatically with item progression:
   - All entries in the category are Completed
 
 ### Tutorial Categories
-Each category can be marked as a tutorial category. When all tutorial categories are completed,
-the guide book will display `(completed)/(total)` for categories
+Each category can be marked as a tutorial category.
+Before all tutorial categories are completed, there are several things to note:
+- The guide book item will be kept in the inventory when player dies ("Beginner Protection")
+- The guide book won't show the number of categories in total
 
 ## Config Format
 
@@ -107,6 +109,8 @@ Examples:
 <|>minecraft:log:2 2<|>
 ```
 Multiple items can be put in the same line following the same line break practice.
+
+NBT is not supported at the moment.
 
 ### Comments
 With the exception of the text section, content after the first `#` is ignored on all lines.
@@ -193,8 +197,7 @@ In this case, the entry won't be completed until the prereqs are satisfied. Once
 the entry will automatically be Completed upon being Completable.
 
 ## Error Handling
-If the config data is invalid, the error will be displayed when you open the guide book.
-It will also be logged when loading the config.
+If the config data is invalid, the error will be displayed as a chat message when you log in or when you reload.
 
 ## Data Structure
 Each player's progress is stored in the players data directory as `<player_name>.techtree.txt`
@@ -204,6 +207,17 @@ tech tree. This means:
 - If the tech tree changes slightly without adding new items, the progress will still be valid
 - If a new item not previously reference in the tech tree is added, it is assumed that the player
 has not picked it up, since only items in the tech tree is added to the save data.
+
+## Debug Support
+There is a debug guide book item available that has several features:
+- Automatically reload the config when used
+- Displays all pages (including hidden), and all pages can be read.
+- Displays additional debug info
+- Allows completing a category or item entry in the GUI.
+
+There are also some commands which could be handy:
+- `/techtree reload` to reload config
+- `/techtree hand` to print the name of the item in your hand
 
 ## Multiplayer Support
 Multiplayer (i.e. dedicated server) is supported. The config needs to be both on the client 

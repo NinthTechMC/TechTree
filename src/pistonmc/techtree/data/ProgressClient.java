@@ -84,19 +84,19 @@ public class ProgressClient {
     }
 
     private TechTree tree;
-    /** Client cache of all item entry states */
-    private HashMap<String, ItemState> states;
-    /** Client cache of all category entry states */
-    private HashMap<String, CategoryState> categoryStates;
-
     private PlayerProgress<ItemUnionUnpaged> progress;
-
     private INetworkClient<Msg> network;
 
     // init related state
     private boolean isInitializing = false;
     private long correlation = 0;
     private Queue<ItemSpecSingle> queue = new ArrayDeque<>();
+
+    // client cache
+    private HashMap<String, ItemState> states;
+    private HashMap<String, CategoryState> categoryStates;
+    private boolean isCompleted = false;
+    private boolean isTutorialCompleted = false;
 
     public ProgressClient(TechTree tree, INetworkClient<Msg> network) {
         this.tree = tree;
@@ -272,13 +272,31 @@ public class ProgressClient {
             ItemData entry = this.tree.getItem(itemId);
             this.refreshItemStateAt(entry, dirtyItemIdsCopy, dirtyCategoryIds, newPages);
         }
+        boolean categoryChanged = false;
         for (String category: dirtyCategoryIds) {
-            this.refreshCategoryState(this.tree.getCategory(category), newPages);
+            if (this.refreshCategoryState(this.tree.getCategory(category), newPages)) {
+                categoryChanged = true;
+            }
         }
         if (!newPages.isEmpty()) {
             ModMain.log.info("New pages: " + newPages);
             this.progress.addNewPages(newPages);
             this.network.sendToServer(new MsgPostNewPages(newPages));
+        }
+        if (categoryChanged) {
+            boolean isTutorialCompleted = true;
+            boolean isCompleted = true;
+            for (CategoryData category: this.tree.getCategories().values()) {
+                boolean completed = this.getCategoryState(category.id) == CategoryState.COMPLETED;
+                if (!completed) {
+                    isCompleted = false;
+                    if (category.data.isTutorial) {
+                        isTutorialCompleted = false;
+                    }
+                }
+            }
+            this.isCompleted = isCompleted;
+            this.isTutorialCompleted = isTutorialCompleted;
         }
     }
 
@@ -365,8 +383,10 @@ public class ProgressClient {
 
     /**
      * Refresh a category's state. All items states must be up to date
+     *
+     * Returns if any category changed state
      */
-    private void refreshCategoryState(CategoryData category, List<String> newPages) {
+    private boolean refreshCategoryState(CategoryData category, List<String> newPages) {
         ModMain.log.info("Refreshing: " + category.id);
         CategoryState state = CategoryState.HIDDEN;
         if (category.items.length > 0) {
@@ -416,6 +436,7 @@ public class ProgressClient {
             }
             this.categoryStates.put(category.id, state);
         }
+        return state != oldState;
     }
 
     public ItemState getItemState(String id) {
@@ -442,12 +463,11 @@ public class ProgressClient {
     }
 
     public boolean hasUnfinishedTutorial() {
-        for (CategoryData category: this.tree.getCategories().values()) {
-            if (category.data.isTutorial && this.getCategoryState(category.id) != CategoryState.COMPLETED) {
-                return true;
-            }
-        }
-        return false;
+        return !this.isTutorialCompleted;
+    }
+
+    public boolean isCompleted() {
+        return this.isCompleted && this.progress.getNewPages().isEmpty();
     }
 
     public String getOverallProgressionString() {

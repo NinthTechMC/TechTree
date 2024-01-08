@@ -63,8 +63,17 @@ public class GuideBook {
     }
 
     @SideOnly(Side.CLIENT)
-    public void reloadClient() {
-        this.tree.reload();
+    public boolean reloadClient() {
+        boolean result = this.tree.reload();
         this.progressClient.refreshAllItems();
+        return result;
+    }
+
+    public boolean hasUnfinishedTutorial() {
+        return this.progressClient.hasUnfinishedTutorial();
+    }
+
+    public boolean isCompleted() {
+        return this.progressClient.isCompleted();
     }
 }

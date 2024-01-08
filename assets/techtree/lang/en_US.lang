@@ -1,6 +1,8 @@
 techtree.load_success=TechTree reloaded
 techtree.load_error=There is an error loading the config. Things will NOT work! Please check the logs
 techtree.guidebook.debug_mode=Debug
+techtree.guidebook.tutorial=Beginner Protection
+techtree.guidebook.complete=Completed
 techtree.guidebook.bookmark=Reading: %s
 techtree.guidebook.new_pages=New Page Available!
 
