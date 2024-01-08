@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Map.Entry;
-import pistonmc.techtree.ModInfo;
 import pistonmc.techtree.ModMain;
 import pistonmc.techtree.adapter.INetworkClient;
 import pistonmc.techtree.event.Msg;
@@ -28,6 +27,10 @@ public class ProgressClient {
 
         public boolean isReadable() {
             return this == COMPLETABLE || this == COMPLETED;
+        }
+
+        public boolean shouldDisplayDarkened() {
+            return this == HIDDEN || this == DISCOVERED;
         }
 
         public int sortOrder() {
@@ -57,6 +60,10 @@ public class ProgressClient {
 
         public boolean isReadable() {
             return this == UNLOCKED || this == PROGRESSED || this == COMPLETED;
+        }
+
+        public boolean shouldDisplayDarkened() {
+            return this == HIDDEN || this == DISCOVERED;
         }
 
         public int sortOrder() {
@@ -156,6 +163,36 @@ public class ProgressClient {
         if (this.progress.removeNewPage(pageId)) {
             this.network.sendToServer(new MsgPostReadPage(pageId));
         }
+    }
+
+    /**
+     * Called when completing a page using debug mode
+     */
+    public void onDebugComplete(String id) {
+        ItemData item = this.tree.getItem(id);
+        if (item == null) {
+            // try category
+            CategoryData category = this.tree.getCategory(id);
+            if (category == null) {
+                ModMain.log.error("Cannot find item or category: " + id);
+                return;
+            }
+            for (ItemData i: category.items) {
+                this.onDebugCompleteItem(i);
+            }
+            return;
+        }
+        this.onDebugCompleteItem(item);
+    }
+
+    private void onDebugCompleteItem(ItemData item) {
+        ItemSpec[] items = item.data.items;
+        if (items.length == 0) {
+            return;
+        }
+        ModMain.log.info("Debug completing item: " + item.id);
+        ItemSpecSingle single = items[0].toSingle();
+        this.onClientObtainItem(single);
     }
 
     public void refreshAllItems() {
@@ -272,36 +309,45 @@ public class ProgressClient {
      */
     private ItemState computeStateForItem(ItemData item) {
         ItemState newState = ItemState.DISCOVERED;
-        boolean hasCompleted = false;
-        boolean hasNotCompleted = false;
+        boolean hasBelowUnlocked = false;
+        boolean hasBelowCompletable = false;
+        boolean allCompleted = true;
         // compute state
         if (item.getDependencies().length == 0) {
             newState = ItemState.COMPLETABLE;
         } else {
             outer: for (ItemData dep: item.getDependencies()) {
                 ItemState depState = this.getItemState(dep.id);
+                if (depState != ItemState.COMPLETED) {
+                    allCompleted = false;
+                }
                 switch (depState) {
                     // for item to be Discovered, all must be at least Unlocked
                     case HIDDEN:
                     case DISCOVERED:
-                        hasNotCompleted = true;
+                        hasBelowUnlocked = true;
+                        hasBelowCompletable = true;
                         newState = ItemState.HIDDEN;
-                    break outer;
-                    case COMPLETED:
-                        hasCompleted = true;
-                    break;
+                        break outer;
+                    case UNLOCKED:
+                        hasBelowCompletable = true;
+                        break;
                     default:
-                        hasNotCompleted = true;
-                    break;
+                        break;
                 }
             }
         }
-        if (newState == ItemState.DISCOVERED && hasCompleted) {
+        // use new state based on dependency states
+        if (allCompleted) {
+            newState = ItemState.COMPLETABLE;
+        } else if (hasBelowUnlocked) {
+            newState = ItemState.HIDDEN;
+        } else if (hasBelowCompletable) {
+            newState = ItemState.DISCOVERED;
+        } else {
             newState = ItemState.UNLOCKED;
         }
-        if (newState == ItemState.UNLOCKED && !hasNotCompleted) {
-            newState = ItemState.COMPLETABLE;
-        }
+
         if (newState == ItemState.COMPLETABLE) {
             ItemUnionUnpaged obtained = this.progress.getObtained();
             for (ItemSpec s: item.data.items) {
@@ -322,47 +368,44 @@ public class ProgressClient {
      */
     private void refreshCategoryState(CategoryData category, List<String> newPages) {
         ModMain.log.info("Refreshing: " + category.id);
-        boolean hasDiscovered = false;
-        boolean hasUnlocked = false;
-        boolean hasCompleted = false;
-        boolean hasNotCompleted = false;
-        for (ItemData item: category.items) {
-            ItemState itemState = this.getItemState(item.id);
-            switch (itemState) {
-                case HIDDEN:
-                    hasNotCompleted = true;
-                    break;
-                case DISCOVERED:
-                    hasDiscovered = true;
-                    hasNotCompleted = true;
-                    break;
-                case UNLOCKED:
-                    hasUnlocked = true;
-                    hasNotCompleted = true;
-                    break;
-                case COMPLETED:
-                    hasCompleted = true;
-                    break;
-                case COMPLETABLE:
-                    hasNotCompleted = true;
-                    break;
-            }
-            if (hasCompleted && hasNotCompleted) {
-                break;
-            }
-        }
         CategoryState state = CategoryState.HIDDEN;
-        if (hasDiscovered) {
-            state = CategoryState.DISCOVERED;
-        }
-        if (hasUnlocked) {
-            state = CategoryState.UNLOCKED;
-        }
-        if (hasCompleted) {
-            if (hasNotCompleted) {
-                state = CategoryState.PROGRESSED;
-            } else {
+        if (category.items.length > 0) {
+            boolean hasNotCompleted = false;
+            boolean hasCompleted = false;
+            boolean hasUnlocked = false;
+            boolean hasDiscovered = false;
+            for (ItemData item: category.items) {
+                ItemState itemState = this.getItemState(item.id);
+                switch (itemState) {
+                    case COMPLETED:
+                        hasCompleted = true;
+                        break;
+                    case HIDDEN:
+                        hasNotCompleted = true;
+                        break;
+                    case DISCOVERED:
+                        hasDiscovered = true;
+                        hasNotCompleted = true;
+                        break;
+                    case UNLOCKED:
+                    case COMPLETABLE:
+                        hasUnlocked = true;
+                        hasNotCompleted = true;
+                        break;
+                }
+                if (hasCompleted && hasNotCompleted) {
+                    // enough to determine state
+                    break;
+                }
+            }
+            if (!hasNotCompleted) {
                 state = CategoryState.COMPLETED;
+            } else if (hasCompleted) {
+                state = CategoryState.PROGRESSED;
+            } else if (hasUnlocked) {
+                state = CategoryState.UNLOCKED;
+            } else if (hasDiscovered) {
+                state = CategoryState.DISCOVERED;
             }
         }
         CategoryState oldState = this.getCategoryState(category.id);
@@ -383,19 +426,100 @@ public class ProgressClient {
         return this.categoryStates.getOrDefault(id, CategoryState.HIDDEN);
     }
 
+    public int getCategoryProgression(String id) {
+        CategoryData category = this.tree.getCategory(id);
+        if (category == null) {
+            return 0;
+        }
+        int count = 0;
+        for (ItemData item: category.items) {
+            ItemState itemState = this.getItemState(item.id);
+            if (itemState == ItemState.COMPLETED) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public boolean hasUnfinishedTutorial() {
+        for (CategoryData category: this.tree.getCategories().values()) {
+            if (category.data.isTutorial && this.getCategoryState(category.id) != CategoryState.COMPLETED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getOverallProgressionString() {
+        int completed = 0;
+        int total = 0;
+        for (Entry<String, CategoryData> category: this.tree.getCategories().entrySet()) {
+            CategoryState state = this.getCategoryState(category.getKey());
+            CategoryData data = category.getValue();
+            if (data.items.length <= 0 || "index".equals(data.id)) {
+                // skip empty categories, especially index
+                continue;
+            }
+            if (state == CategoryState.COMPLETED) {
+                completed++;
+            }
+            total++;
+        }
+        return completed + "/" + total;
+    }
+
     public String[] getText(String id) {
         return this.tree.getText(id);
+    }
+
+    public DataEntry getData(String id) {
+        return this.tree.getData(id);
+    }
+
+    public CategoryData getCategory(String id) {
+        return this.tree.getCategory(id);
     }
 
     public boolean hasNewPages() {
         return this.progress.hasNewPage();
     }
 
+    public boolean isNewPage(String pageId) {
+        return this.progress.getNewPages().contains(pageId);
+    }
+
+    public boolean hasNewPageInCategory(String categoryId) {
+        if (this.isNewPage(categoryId)) {
+            return true;
+        }
+        String prefix = categoryId + ".";
+        for (String pageId: this.progress.getNewPages()) {
+            if (pageId.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getCategoryFor(String id) {
+        ItemData item = this.tree.getItem(id);
+        if (item != null) {
+            return item.getCategoryId();
+        }
+        return id;
+    }
+
     public List<CategoryData> getSortedVisibleCategories(boolean isDebug) {
         List<CategoryData> categories = new ArrayList<>(this.categoryStates.size());
-        for (Entry<String, CategoryState> entry: this.categoryStates.entrySet()) {
-            if (isDebug || entry.getValue() != CategoryState.HIDDEN) {
-                categories.add(this.tree.getCategory(entry.getKey()));
+        for (Entry<String, CategoryData> category: this.tree.getCategories().entrySet()) {
+            CategoryState state = this.getCategoryState(category.getKey());
+            CategoryData data = category.getValue();
+            if (data.items.length <= 0 || "index".equals(data.id)) {
+                // skip empty categories, especially index
+                continue;
+            }
+            if (isDebug || state != CategoryState.HIDDEN) {
+                categories.add(data);
             }
         }
         // sort

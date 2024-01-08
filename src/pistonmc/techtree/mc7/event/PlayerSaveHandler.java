@@ -31,6 +31,7 @@ public class PlayerSaveHandler {
         }
     }
 
+    // this event is only fired on the server side
     @SubscribeEvent
     public void onPlayerLoad(PlayerEvent.LoadFromFile event) {
         IPlayerServerSide player = new PlayerServerSide(event.entityPlayer);
@@ -40,6 +41,7 @@ public class PlayerSaveHandler {
         this.server.getProgress().onPlayerLoad(player, data);
     }
 
+    // this event is only fired on the server side
     @SubscribeEvent
     public void onPlayerSave(PlayerEvent.SaveToFile event) {
         IPlayerServerSide player = new PlayerServerSide(event.entityPlayer);

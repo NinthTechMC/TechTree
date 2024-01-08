@@ -17,6 +17,10 @@ public class IntervalUnion {
             this.start = start;
             this.end = end;
         }
+
+        public Interval copy() {
+            return new Interval(this.start, this.end);
+        }
         @Override
         public int compareTo(Interval o) {
             if (o.start > this.end + 1) {
@@ -57,6 +61,13 @@ public class IntervalUnion {
             int start = deserializer.readInt();
             int end = deserializer.readInt();
             return new Interval(start, end);
+        }
+
+        public String toString() {
+            if (this.start == this.end) {
+                return Integer.toString(this.start);
+            }
+            return this.start + "-" + this.end;
         }
 
     }
@@ -212,7 +223,7 @@ public class IntervalUnion {
         }
         IntervalUnion u = new IntervalUnion(new ArrayList<>());
         for (Interval interval : this.intervals) {
-            u.union(interval);
+            u.union(interval.copy());
         }
         return u;
     }
@@ -227,13 +238,7 @@ public class IntervalUnion {
             if (sb.length() > 0) {
                 sb.append(",");
             }
-            if (interval.start == interval.end) {
-                sb.append(interval.start);
-            } else {
-                sb.append(interval.start);
-                sb.append("-");
-                sb.append(interval.end);
-            }
+            sb.append(interval);
         }
         return sb.toString();
     }

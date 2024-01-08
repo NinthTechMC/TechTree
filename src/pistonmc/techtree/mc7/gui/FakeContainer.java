@@ -40,26 +40,33 @@ public class FakeContainer extends Container implements IInventory {
         this.inventoryItemStacks.clear();
         for (int i = 0; i < items.size(); i++) {
             GuiItem guiItem = items.get(i);
-            ItemSpecSingle spec = guiItem.item;
-            String name = spec.getNamespacedId();
-            Item item = GameRegistry.findItem(spec.modid, spec.name);
-            if (item == null) {
-                // try block?
-                Block block = GameRegistry.findBlock(spec.modid, spec.name);
-                if (block != null) {
-                    item = Item.getItemFromBlock(block);
-                }
-            }
-            if (item == null) {
-                ModMain.log.warn("Cannot find item to display: " + name);
+            ItemStack stack = itemStackFromGuiItem(guiItem);
+            if (stack == null) {
+                ModMain.log.warn("Cannot find item to display: " + guiItem.item.getNamespacedId());
                 newStacks[i] = null;
             } else {
-                ItemStack stack = new ItemStack(item, guiItem.stackSize, spec.meta);
                 newStacks[i] = stack;
             }
             this.addSlotToContainer(new FakeSlot(this, i, guiItem.x, guiItem.y));
         }
         this.stacks = newStacks;
+    }
+
+    public static ItemStack itemStackFromGuiItem(GuiItem guiItem) {
+        ItemSpecSingle spec = guiItem.item;
+        Item item = GameRegistry.findItem(spec.modid, spec.name);
+        if (item == null) {
+            // try block?
+            Block block = GameRegistry.findBlock(spec.modid, spec.name);
+            // block should never be null because it falls back to air
+            if (block != null) {
+                item = Item.getItemFromBlock(block);
+            }
+        }
+        if (item == null) {
+            return null;
+        }
+        return new ItemStack(item, guiItem.stackSize, spec.meta);
     }
 
     @Override

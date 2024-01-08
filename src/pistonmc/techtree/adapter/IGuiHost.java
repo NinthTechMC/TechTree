@@ -33,5 +33,20 @@ public interface IGuiHost {
      * Draw text
      * (x, y) is relative to the screen
      */
-    public void drawString(String text, int x, int y);
+    public void drawString(String text, int x, int y, int color, boolean shadow);
+    public default void drawString(String text, int x, int y, int color) {
+        this.drawString(text, x, y, color, false);
+    }
+
+    /**
+     * Draw tooltip
+     * (x, y) is relative to the screen
+     */
+    public void drawTooltip(List<String> lines, int x, int y);
+
+    public boolean isShiftDown();
+
+    public String translate(String key);
+    public String translateFormatted(String key, Object... args);
+
 }

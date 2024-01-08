@@ -6,8 +6,8 @@ import java.util.List;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import pistonmc.techtree.data.CategoryData;
+import pistonmc.techtree.data.DataEntry;
 import pistonmc.techtree.data.ProgressClient;
-import pistonmc.techtree.data.ProgressServer;
 import pistonmc.techtree.data.TechTree;
 
 public class GuideBook {
@@ -39,6 +39,15 @@ public class GuideBook {
             return "Guide Book";
         }
         return index.data.title[0];
+    }
+
+    @SideOnly(Side.CLIENT)
+    public String getPageName(String id) {
+        DataEntry entry = this.tree.getData(id);
+        if (entry == null) {
+            return null;
+        }
+        return entry.title.length == 0 ? null : entry.title[0];
     }
 
     public List<String> getBookSubtitles() {

@@ -1,7 +1,5 @@
 package pistonmc.techtree.data;
 
-import java.util.List;
-
 public class CategoryData {
     public final String id;
     public final DataEntry data;
@@ -15,6 +13,10 @@ public class CategoryData {
 
     public String toString() {
         return "Category(" + id + ")";
+    }
+
+    public int getNumItems() {
+        return this.items.length;
     }
 
 }

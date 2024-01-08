@@ -3,9 +3,10 @@ package pistonmc.techtree.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,7 +60,7 @@ public class PlayerProgress<TUnion extends ItemUnion> {
         if (!newPagesFile.exists()) {
             return;
         }
-        try (BufferedReader reader = new BufferedReader(new FileReader(newPagesFile))) {
+		try (BufferedReader reader = Files.newBufferedReader(newPagesFile.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 this.newPages.add(line.trim());

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import cpw.mods.fml.relauncher.SideOnly;
 import cpw.mods.fml.relauncher.Side;
@@ -23,7 +25,7 @@ public class TechTree {
 	private ILocaleLoader localeLoader;
 	private IConfigHost configHost;
 	private long lastCacheTime = 0;
-    private boolean hasError = false;
+    public boolean hasError = false;
     /** text entry id (category and item) to text section */
     private final HashMap<String, String[]> textCache = new HashMap<>();
     /** category id to data */
@@ -41,29 +43,29 @@ public class TechTree {
     	this.configHost = gamePath;
     }
 	
-	public void reload() {
+	public boolean reload() {
 		ModMain.log.info("Loading config");
         this.hasError = false;
 		long start = System.currentTimeMillis();
         HashMap<String, DataEntry> categories = this.loadCategories();
         if (this.hasError) {
-            return;
+            return false;
         }
         HashMap<String, DataEntry> items = this.loadItems(categories);
         if (this.hasError) {
-            return;
+            return false;
         }
         this.detectDependencyCycle(items);
         if (this.hasError) {
-            return;
+            return false;
         }
         this.createItemGraph(items);
         if (this.hasError) {
-            return;
+            return false;
         }
         this.createCategoryGraph(categories);
         if (this.hasError) {
-            return;
+            return false;
         }
 
         this.textCache.clear();
@@ -80,10 +82,11 @@ public class TechTree {
         if (indexEntry == null) {
             ModMain.log.error("Failed to load index");
             this.hasError = true;
-            return;
+            return false;
         }
         this.categories.put("index", new CategoryData("index", indexEntry, new ItemData[0]));
 		ModMain.log.info("Config loaded in " + (System.currentTimeMillis() - start) + "ms");
+        return true;
 	}
 
     private HashMap<String, DataEntry> loadCategories() {
@@ -210,8 +213,9 @@ public class TechTree {
             descendants.put(itemId, new ArrayList<>());
         }
 
+        HashSet<String> visited = new HashSet<>();
         for (Entry<String, DataEntry> item: items.entrySet()) {
-            this.buildItemGraphNodeAt(item.getKey(), item.getValue(), items, descendants);
+            this.buildItemGraphNodeAt(item.getKey(), item.getValue(), items, descendants, visited);
         }
 
         for (Entry<String, ArrayList<String>> des: descendants.entrySet()) {
@@ -253,8 +257,18 @@ public class TechTree {
         }
     }
 
-    private ItemData buildItemGraphNodeAt(String id, DataEntry data, HashMap<String, DataEntry> items, HashMap<String, ArrayList<String>> descendants) {
-        ItemData[] dependencies = new ItemData[data.after.length];
+    private ItemData buildItemGraphNodeAt(
+        String id, 
+        DataEntry data, 
+        HashMap<String, DataEntry> items, 
+        HashMap<String, ArrayList<String>> descendants,
+        HashSet<String> visited
+    ) {
+        if (visited.contains(id)) {
+            return this.items.get(id);
+        }
+        visited.add(id);
+        List<ItemData> dependencies = new ArrayList<>(data.after.length);
         String categoryId = id.substring(0, id.indexOf('.'));
         boolean isHiddenDependency = false;
         for (int i = 0; i < data.after.length; i++) {
@@ -273,13 +287,20 @@ public class TechTree {
                     this.hasError = true;
                     return null;
                 }
-                dep = this.buildItemGraphNodeAt(depId, depData, items, descendants);
+                dep = this.buildItemGraphNodeAt(depId, depData, items, descendants, visited);
+                if (dep == null) {
+                    ModMain.log.error("Failed to build dependency graph: " + depId + " (in " + id + ")");
+                    ModMain.log.error("This is likely due to circular dependencies, which is somehow not caught above?");
+                    this.hasError = true;
+                    return null;
+                }
             }
-            dependencies[i] = dep;
+            dependencies.add(dep);
             descendants.get(depId).add(id);
         }
 
-        ItemData itemData = new ItemData(id, this, data, dependencies, isHiddenDependency);
+        ItemData[] depArray = dependencies.toArray(new ItemData[dependencies.size()]);
+        ItemData itemData = new ItemData(id, this, data, depArray, isHiddenDependency);
         this.items.put(id, itemData);
         return itemData;
     }
@@ -310,6 +331,19 @@ public class TechTree {
 
     public CategoryData getCategory(String categoryId) {
         return this.categories.get(categoryId);
+    }
+
+    public DataEntry getData(String fullId) {
+        ItemData item = this.getItem(fullId);
+        if (item == null) {
+            CategoryData category = this.getCategory(fullId);
+            if (category != null) {
+                return category.data;
+            }
+            return null;
+        }
+        return item.data;
+
     }
 
 	public CategoryData getIndex() {
@@ -349,6 +383,10 @@ public class TechTree {
 
     public boolean isItemInvolved(ItemSpecSingle item) {
         return this.involvedItems.contains(item);
+    }
+
+    public Map<String, CategoryData> getCategories() {
+        return this.categories;
     }
 
     /**

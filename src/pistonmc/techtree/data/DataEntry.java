@@ -2,8 +2,9 @@ package pistonmc.techtree.data;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import pistonmc.techtree.ModMain;
 
@@ -51,12 +52,12 @@ public class DataEntry {
         ArrayList<ItemSpec> items = new ArrayList<>();
         ArrayList<String> after = new ArrayList<>();
         boolean isTutorial = false;
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             String line;
             outer: while ((line = reader.readLine()) != null) {
                 // Skip comments
                 int hashIndex = line.indexOf('#');
-                if (hashIndex != -1) {
+                if (hashIndex >= 0) {
                     line = line.substring(0, hashIndex).trim();
                 } else {
                     line = line.trim();
@@ -128,7 +129,7 @@ public class DataEntry {
 
     /** Read only the text section of a file */
     public static String[] readTextFrom(File file) {
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().equals("[text]")) {

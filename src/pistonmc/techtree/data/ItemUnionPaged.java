@@ -3,9 +3,10 @@ package pistonmc.techtree.data;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import pistonmc.techtree.ModMain;
 import pistonmc.techtree.adapter.ISerializer;
@@ -57,7 +58,7 @@ public class ItemUnionPaged implements ItemUnion {
     }
 
     public void readFrom(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 ItemSpec item = ItemSpec.parse(line);

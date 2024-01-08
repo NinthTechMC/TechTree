@@ -1,4 +1,13 @@
+techtree.load_success=TechTree reloaded
+techtree.load_error=There is an error loading the config. Things will NOT work! Please check the logs
 techtree.guidebook.debug_mode=Debug
+techtree.guidebook.bookmark=Reading: %s
 techtree.guidebook.new_pages=New Page Available!
 
 techtree.gui.paging=Page %d / %d
+techtree.gui.paging_short=%d / %d
+techtree.gui.unreadable_title=§5???
+techtree.gui.unreadable_tooltip=§7You can't comprehend this
+techtree.gui.unlocked_tooltip=§eMore research needed
+techtree.gui.debug.format=§d%s
+techtree.gui.debug.complete=Shift+Click to complete

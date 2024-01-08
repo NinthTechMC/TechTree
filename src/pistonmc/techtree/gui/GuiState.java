@@ -1,6 +1,7 @@
 package pistonmc.techtree.gui;
 
-import pistonmc.techtree.adapter.IGuiHost;
+import pistonmc.techtree.adapter.IMapReader;
+import pistonmc.techtree.adapter.IMapWriter;
 
 public class GuiState {
     /** If debug mode is enabled */
@@ -20,10 +21,10 @@ public class GuiState {
 
     public void handleListPrevPage() {
         if (this.isOnCategoryList()) {
-            this.currentListStart = Math.max(0, this.currentListStart - GuiTechTree.CATEGORES_PER_PAGE);
+            this.currentListStart = Math.max(0, this.currentListStart - GuiConstants.CATEGORIES_PER_PAGE);
             return;
         }
-        this.currentListStart = Math.max(0, this.currentListStart - GuiTechTree.ITEMS_PER_PAGE);
+        this.currentListStart = Math.max(0, this.currentListStart - GuiConstants.ITEMS_PER_PAGE);
     }
 
     public void handleListNextPage(int listSize, int increment) {
@@ -31,6 +32,11 @@ public class GuiState {
             return;
         }
         this.currentListStart += increment;
+    }
+
+    public void ensureListStartRange(int listSize) {
+        this.currentListStart = Math.max(0, Math.min(this.currentListStart, listSize - 1));
+        this.indexListStart = Math.max(0, Math.min(this.indexListStart, listSize - 1));
     }
 
     public void ensureContentPageRange(int listSize) {
@@ -70,7 +76,17 @@ public class GuiState {
         this.currentContentPage = 0;
     }
 
-    private void updateDisplayPages() {
-        String pageId = this.getCurrentPage();
+    public void writeToMap(IMapWriter writer) {
+        writer.writeString("currentPage", this.getCurrentPage());
+        writer.writeInt("indexListStart", this.indexListStart);
+        writer.writeInt("currentListStart", this.currentListStart);
+        writer.writeInt("currentContentPage", this.currentContentPage);
+    }
+
+    public void readFromMap(IMapReader reader) {
+        this.currentPage = reader.readString("currentPage");
+        this.indexListStart = reader.readInt("indexListStart");
+        this.currentListStart = reader.readInt("currentListStart");
+        this.currentContentPage = reader.readInt("currentContentPage");
     }
 }

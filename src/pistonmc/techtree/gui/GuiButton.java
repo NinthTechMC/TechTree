@@ -3,11 +3,6 @@ package pistonmc.techtree.gui;
 import pistonmc.techtree.adapter.IGuiHost;
 
 public class GuiButton {
-    public static final int WIDTH = 22;
-    public static final int HEIGHT = 17;
-    public static final int OVERLAY_LEFT = WIDTH * 3;
-    public static final int OVERLAY_RIGHT = WIDTH * 4;
-    public static final int OVERLAY_LIST = WIDTH * 5;
     private IGuiHost host;
     /** (x,y) relative to the top-left corner of the GUI */
     private int x;
@@ -45,7 +40,7 @@ public class GuiButton {
         if (!this.visible) {
             return false;
         }
-        return mx >= this.x && mx < this.x + WIDTH && my >= this.y && my < this.y + HEIGHT;
+        return mx >= this.x && mx < this.x + GuiConstants.BUTTON_WIDTH && my >= this.y && my < this.y + GuiConstants.BUTTON_HEIGHT;
     }
 
     /**
@@ -58,30 +53,34 @@ public class GuiButton {
             return;
         }
         int u = 0;
-        int v = GuiTechTree.HEIGHT;
+        int v = GuiConstants.GUI_HEIGHT;
         if (!this.enabled) {
-            u = WIDTH;
+            u = GuiConstants.BUTTON_WIDTH;
         } else if (this.isMouseOver(mx, my)) {
-            u = WIDTH * 2;
+            u = GuiConstants.BUTTON_WIDTH * 2;
         }
         int left = this.host.getLeft() + this.x;
         int top = this.host.getTop() + this.y;
-        this.host.drawTextureRect(left, top, u, v, WIDTH, HEIGHT);
-        this.host.drawTextureRect(left, top, this.overlayU, v, WIDTH, HEIGHT);
+        this.host.drawTextureRect(left, top, u, v, GuiConstants.BUTTON_WIDTH, GuiConstants.BUTTON_HEIGHT);
+        this.host.drawTextureRect(left, top, this.overlayU, v, GuiConstants.BUTTON_WIDTH, GuiConstants.BUTTON_HEIGHT);
     }
 
     /**
      * Called when the screen is clicked
      *
      * (mx, my) are relative to the top-left corner of the GUI
+     *
+     * return if the button is triggered
      */
-    public void onClick(int mx, int my) {
+    public boolean onClick(int mx, int my) {
         if (!this.visible || !this.enabled) {
-            return;
+            return false;
         }
         if (this.isMouseOver(mx, my)) {
             this.host.playButtonSound();
             this.action.run();
+            return true;
         }
+        return false;
     }
 }

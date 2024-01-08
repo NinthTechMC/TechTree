@@ -2,19 +2,10 @@ package pistonmc.techtree.gui;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import pistonmc.techtree.adapter.IGuiHost;
 import pistonmc.techtree.data.ItemSpecSingle;
 
 public class GuiPageBuilder {
-    public static final int TEXT_LINE_WIDTH = 142;
-    public static final int ITEM_LINE_WIDTH = 6; // how many items max per line
-    public static final int ITEM_SIZE = 16;
-    public static final int TEXT_LINE_HEIGHT = GuiPage.TEXT_LINE_HEIGHT;
-    public static final int ITEM_XOFF = -2;
-    public static final int ITEM_YOFF = (TEXT_LINE_HEIGHT * 2 - ITEM_SIZE) / 2; // offset of items from top of line
-    public static final int ITEM_SPACING = 6;
-    public static final int PAGE_HEIGHT = 165;
     /** Object is either String or List<GuiItem> */
     private List<Object> lines;
     /**
@@ -73,16 +64,16 @@ public class GuiPageBuilder {
         GuiPage current = new GuiPage(this.host);
         for (Object o: this.lines) {
             if (o instanceof String) {
-                if (height + TEXT_LINE_HEIGHT > PAGE_HEIGHT) {
+                if (height + GuiConstants.TEXT_LINE_HEIGHT > GuiConstants.PAGE_HEIGHT) {
                     // page full
                     output.add(current);
                     current = new GuiPage(this.host);
                     height = 0;
                 }
-                height += TEXT_LINE_HEIGHT;
+                height += GuiConstants.TEXT_LINE_HEIGHT;
                 current.lines.add((String) o);
             } else {
-                if (height + TEXT_LINE_HEIGHT * 2> PAGE_HEIGHT) {
+                if (height + GuiConstants.TEXT_LINE_HEIGHT * 2 > GuiConstants.PAGE_HEIGHT) {
                     // page full
                     output.add(current);
                     current = new GuiPage(this.host);
@@ -93,16 +84,23 @@ public class GuiPageBuilder {
                 List<GuiItem> items = (List<GuiItem>) o;
                 int count = items.size();
                 // (x, y) here are relative to the top-left corner of gui
-                int x = GuiPage.PAGE_X + (TEXT_LINE_WIDTH - ITEM_SIZE * count - ITEM_SPACING * (count - 1)) / 2 + ITEM_XOFF;
-                int y = GuiPage.PAGE_Y + height + ITEM_YOFF;
+                // @formatter:off
+                int x = GuiConstants.PAGE_X 
+                    + (GuiConstants.TEXT_LINE_WIDTH - GuiConstants.ITEM_SIZE * count - GuiConstants.PAGE_ITEM_SPACING * (count - 1)) / 2 
+                    + GuiConstants.ITEM_XOFF;
+                int y = GuiConstants.PAGE_Y 
+                    + height 
+                    + GuiConstants.ITEM_YOFF;
+                // @formatter:on
+                
                 for (int i = 0; i < count; i++) {
                     GuiItem item = items.get(i);
                     item.x = x;
                     item.y = y;
                     current.items.add(item);
-                    x += ITEM_SIZE + ITEM_SPACING;
+                    x += GuiConstants.ITEM_SIZE + GuiConstants.PAGE_ITEM_SPACING;
                 }
-                height += TEXT_LINE_HEIGHT * 2;
+                height += GuiConstants.TEXT_LINE_HEIGHT * 2;
             }
         }
         if (!current.isEmpty()) {
@@ -215,10 +213,10 @@ public class GuiPageBuilder {
             this.prepareEmptyNewLine(false);
         }
         int wordWidth = this.host.getStringWidth(word);
-        if (wordWidth > TEXT_LINE_WIDTH) {
-            while (wordWidth > TEXT_LINE_WIDTH) {
+        if (wordWidth > GuiConstants.TEXT_LINE_WIDTH) {
+            while (wordWidth > GuiConstants.TEXT_LINE_WIDTH) {
                 // break word
-                String splited = this.splitWordAtWidth(word, TEXT_LINE_WIDTH);
+                String splited = this.splitWordAtWidth(word, GuiConstants.TEXT_LINE_WIDTH);
                 this.lines.add(splited);
                 word = word.substring(splited.length());
                 wordWidth = this.host.getStringWidth(word);
@@ -227,7 +225,7 @@ public class GuiPageBuilder {
             this.lastLineWidth = wordWidth;
             return;
         }
-        if (this.lastLineWidth + wordWidth > TEXT_LINE_WIDTH) {
+        if (this.lastLineWidth + wordWidth > GuiConstants.TEXT_LINE_WIDTH) {
             // put word on a new line
             this.lines.add(word);
             this.lastLineWidth = wordWidth;
@@ -249,7 +247,7 @@ public class GuiPageBuilder {
         if (this.lastLineWidth == 0) {
             this.prepareEmptyNewLine(true);
         }
-        if (this.lastLineWidth + 1 > ITEM_LINE_WIDTH) {
+        if (this.lastLineWidth + 1 > GuiConstants.ITEM_LINE_WIDTH) {
             // put item on a new line
             ArrayList<GuiItem> line = new ArrayList<>();
             line.add(item);

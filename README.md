@@ -33,7 +33,7 @@ The full states for each item entry are:
   - Entry is displayed as a dark square, with the darkened texture and `???` name
   - Entry content is not readable
 - Unlocked:
-  - At least one dependency is Completed
+  - All its dependencies are Completable or above
   - Entry is displayed as a dark square, with normal texture and readable name
   - Entry content is not readable
 - Completable:
@@ -137,7 +137,6 @@ Each category index is stored at `/<locale>/<category_id>.txt`. Its format is
 ```
 [title]
 Category Title
-Category Subtitle
 
 [tutorial]
 
@@ -150,6 +149,7 @@ Your text goes here
 ```
 The icon item will be displayed in the category. The `[tutorial]` section
 will make the category a tutorial. Leave it out if it's not a tutorial.
+Completing all tutorials will show how many categories are completed vs total.
 
 ### Item Entry
 Item entries are stored at `/<locale>/<category_id>/<item_id>.txt`. Its format is

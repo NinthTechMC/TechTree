@@ -13,7 +13,11 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import pistonmc.techtree.ModInfo;
+import pistonmc.techtree.data.DataEntry;
+import pistonmc.techtree.gui.GuiState;
+import pistonmc.techtree.gui.GuiTechTree;
 import pistonmc.techtree.item.GuideBook;
+import pistonmc.techtree.mc7.data.NBTTagCompoundWrapper;
 
 public class ItemGuideBook extends Item {
     public static final String NAME = "itemTTGuideBook";
@@ -60,6 +64,16 @@ public class ItemGuideBook extends Item {
         List<String> subtitles = this.inner.getBookSubtitles();
         for (String subtitle : subtitles) {
             tooltip.add(subtitle);
+        }
+        if (stack.hasTagCompound()) {
+            GuiState state = GuiTechTree.readState(new NBTTagCompoundWrapper(stack.getTagCompound()), false);
+            if (!state.isOnCategoryList()) {
+                String page = state.getCurrentPage();
+                String pageName = this.inner.getPageName(page);
+                if (pageName != null) {
+                    tooltip.add(StatCollector.translateToLocalFormatted("techtree.guidebook.bookmark", pageName));
+                }
+            }
         }
         if (this.inner.hasNewPages()) {
             tooltip.add(EnumChatFormatting.YELLOW + StatCollector.translateToLocal("techtree.guidebook.new_pages"));

@@ -8,9 +8,6 @@ import pistonmc.techtree.adapter.IGuiHost;
  * A page in the guide book to be displayed
  */
 public class GuiPage {
-    public static final int TEXT_LINE_HEIGHT = 11;
-    public static final int PAGE_X = 115;
-    public static final int PAGE_Y = 27;
     private IGuiHost host;
 
     /** computed render properties */
@@ -36,16 +33,16 @@ public class GuiPage {
         int top = this.host.getTop();
         for (GuiItem item: items) {
             int itemSize = 16;
-            this.host.drawTextureRect(left + item.x - 2, top + item.y - 2, 20 * 4, GuiTechTree.ITEM_BLOCK_V, itemSize + 4, itemSize + 4);
+            this.host.drawTextureRect(left + item.x - 2, top + item.y - 2, 20 * 4, GuiConstants.ITEM_BLOCK_V, itemSize + 4, itemSize + 4);
         }
     }
 
     public void drawPageText() {
-        int x = this.host.getLeft() + PAGE_X;
-        int y = this.host.getTop() + PAGE_Y;
+        int x = this.host.getLeft() + GuiConstants.PAGE_X;
+        int y = this.host.getTop() + GuiConstants.PAGE_Y;
         for (String line : this.lines) {
-            this.host.drawString(line, x, y);
-            y += TEXT_LINE_HEIGHT;
+            this.host.drawString(line, x, y, GuiConstants.TEXT_COLOR);
+            y += GuiConstants.TEXT_LINE_HEIGHT;
         }
     }
 

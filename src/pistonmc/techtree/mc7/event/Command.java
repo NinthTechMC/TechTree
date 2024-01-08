@@ -2,12 +2,19 @@ package pistonmc.techtree.mc7.event;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.UserListOps;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraftforge.event.world.WorldEvent;
 import pistonmc.techtree.mc7.ModServer;
 
@@ -35,7 +42,7 @@ public class Command implements ICommand {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/t[ech]tree reload";
+        return "/t[ech]tree reload|hand";
     }
 
     @Override
@@ -47,7 +54,29 @@ public class Command implements ICommand {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length == 1 && args[0].equals("reload")) {
-            server.getTechTree().reload();
+            boolean success = server.getTechTree().reload();
+            if (success) {
+                sender.addChatMessage(new ChatComponentTranslation("techtree.load_success"));
+            } else {
+                sender.addChatMessage(new ChatComponentTranslation("techtree.load_error"));
+            }
+            return;
+        }
+        if (args.length == 1 && args[0].equals("hand")) {
+            if (!(sender instanceof EntityPlayer)) {
+                return;
+            }
+            EntityPlayer player = (EntityPlayer) sender;
+            ItemStack s = player.getCurrentEquippedItem();
+            if (s == null) {
+                return;
+            }
+            UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(s.getItem());
+            if (id == null) {
+                return;
+            }
+            sender.addChatMessage(new ChatComponentText(id.modId+":"+id.name+":"+s.getItemDamage()));
+            return;
         }
     }
 
@@ -66,8 +95,16 @@ public class Command implements ICommand {
 
     @Override
     @SuppressWarnings("rawtypes")
-    public List addTabCompletionOptions(ICommandSender p_71516_1_, String[] p_71516_2_) {
-        return Arrays.asList("reload");
+    public List addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1) {
+            if (args[0].startsWith("r")) {
+                return Arrays.asList("reload");
+            }
+            if (args[0].startsWith("h")) {
+                return Arrays.asList("hand");
+            }
+        }
+        return Collections.emptyList();
     }
 
     @Override

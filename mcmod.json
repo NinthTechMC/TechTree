@@ -16,6 +16,7 @@
     "screenshots": [],
     "dependencies": [],
     "libs": [
-        
+        "https://github.com/BlockPiston/Baubles/releases/download/v1.0.1.10/Baubles-1.7.10-1.0.1.10-deobf.jar",
+        "Thaumcraft-deobf-1.7.10-4.2.3.5.jar"
     ]
 }

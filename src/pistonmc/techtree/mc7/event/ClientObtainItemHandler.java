@@ -20,6 +20,10 @@ public class ClientObtainItemHandler {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (!event.player.worldObj.isRemote) {
+            // server side
+            return;
+        }
         if (event.phase != TickEvent.Phase.END) {
             return;
         }

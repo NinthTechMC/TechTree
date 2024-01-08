@@ -7,6 +7,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import pistonmc.techtree.data.ProgressClient;
 import pistonmc.techtree.gui.GuiState;
+import pistonmc.techtree.gui.GuiTechTree;
+import pistonmc.techtree.mc7.ItemGuideBook;
+import pistonmc.techtree.mc7.data.NBTTagCompoundWrapper;
 
 public class GuiHandler implements IGuiHandler{
     private ProgressClient progress;
@@ -29,12 +32,21 @@ public class GuiHandler implements IGuiHandler{
         if (this.progress == null) {
             return null;
         }
-        // TODO: load gui state based on item
         ItemStack stack = player.getCurrentEquippedItem();
         if (stack == null) {
             return null;
         }
+        Item item = stack.getItem();
+        if (!(item instanceof ItemGuideBook)) {
+            return null;
+        }
         boolean isDebug = stack.getItem() == this.debugItem;
-        return new GuiHost(this.progress, new GuiState(isDebug));
+        GuiState state;
+        if (stack.hasTagCompound()) {
+            state = GuiTechTree.readState(new NBTTagCompoundWrapper(stack.getTagCompound()), isDebug);
+        } else {
+            state = new GuiState(isDebug);
+        }
+        return new GuiHost(this.progress, state);
     }
 }
