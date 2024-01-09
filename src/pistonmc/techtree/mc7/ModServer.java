@@ -28,6 +28,7 @@ import pistonmc.techtree.mc7.event.Command;
 import pistonmc.techtree.mc7.event.InitProgressHandler;
 import pistonmc.techtree.mc7.event.ObtainItemHandler;
 import pistonmc.techtree.mc7.event.PlayerSaveHandler;
+import pistonmc.techtree.mc7.event.TutorialHandler;
 import pistonmc.techtree.mc7.gui.GuiHandler;
 
 public class ModServer implements IModInstance {
@@ -71,10 +72,10 @@ public class ModServer implements IModInstance {
     public void preInit(FMLPreInitializationEvent event) {
         this.network = new Network();
         this.initTechTreeProgress(new TechTree(new LocaleLoaderServer(), new ConfigHost()));
-        this.initIntegratedServer();
 
-        this.registerItemGuideBook(new GuideBook(false, this.tree));
+        ItemGuideBook guideBookItem = this.registerItemGuideBook(new GuideBook(false, this.tree));
         this.registerItemGuideBook(new GuideBook(true, this.tree));
+        this.initIntegratedServer(guideBookItem);
 
         this.initGui(null, null);
     }
@@ -85,20 +86,26 @@ public class ModServer implements IModInstance {
         this.progress = new ProgressServer(tree, this.network);
     }
 
-    public void initIntegratedServer() {
+    public void initIntegratedServer(ItemGuideBook guideBookItem) {
         MsgRegistry registry = this.getMsgRegistry();
         registry.register(i -> MsgPostNewPages.id = i, MsgPostNewPages::new);
         registry.register(i -> MsgPostObtainItem.id = i, MsgPostObtainItem::new);
         registry.register(i -> MsgPostReadPage.id = i, MsgPostReadPage::new);
         registry.register(i -> MsgSyncInit.id = i, MsgSyncInit::new);
-        // registry.register(i -> MsgSyncInitPages.id = i, MsgSyncInitPages::new);
         registry.register(i -> MsgSyncObtainItem.id = i, MsgSyncObtainItem::new);
 
         MinecraftForge.EVENT_BUS.register(new PlayerSaveHandler(this));
         MinecraftForge.EVENT_BUS.register(new Command(this));
-        ObtainItemHandler handler = new ObtainItemHandler(this);
-        MinecraftForge.EVENT_BUS.register(handler);
-        FMLCommonHandler.instance().bus().register(handler);
+        {
+            ObtainItemHandler handler = new ObtainItemHandler(this);
+            MinecraftForge.EVENT_BUS.register(handler);
+            FMLCommonHandler.instance().bus().register(handler);
+        }
+        {
+            TutorialHandler handler = new TutorialHandler(guideBookItem);
+            MinecraftForge.EVENT_BUS.register(handler);
+            FMLCommonHandler.instance().bus().register(handler);
+        }
         FMLCommonHandler.instance().bus().register(new InitProgressHandler(this));
     }
 
@@ -114,16 +121,12 @@ public class ModServer implements IModInstance {
 
     @Override
     public void init(FMLInitializationEvent event) {
-        // TODO Auto-generated method stub
-        
     }
 
 
 
     @Override
     public void postInit(FMLPostInitializationEvent event) {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override

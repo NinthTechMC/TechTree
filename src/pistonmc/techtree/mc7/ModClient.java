@@ -58,25 +58,22 @@ public class ModClient implements IModInstance {
         this.integratedServer = new ModServer();
         this.integratedServer.setNetwork(this.network);
         this.integratedServer.initTechTreeProgress(tree);
-        this.integratedServer.initIntegratedServer();
-        FMLCommonHandler.instance().bus().register(new ClientObtainItemHandler(this.progress));
 
-        this.integratedServer.registerItemGuideBook(new GuideBook(false, this.tree).setProgressClient(this.progress));
+        ItemGuideBook guideBook = this.integratedServer.registerItemGuideBook(new GuideBook(false, this.tree).setProgressClient(this.progress));
         ItemGuideBook debugBook = this.integratedServer.registerItemGuideBook(new GuideBook(true, this.tree).setProgressClient(this.progress));
+
+        this.integratedServer.initIntegratedServer(guideBook);
+        FMLCommonHandler.instance().bus().register(new ClientObtainItemHandler(this.progress));
 
         this.integratedServer.initGui(this.progress, debugBook);
     }
 
     @Override
     public void init(FMLInitializationEvent event) {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override
     public void postInit(FMLPostInitializationEvent event) {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override
