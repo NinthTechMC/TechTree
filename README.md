@@ -1,6 +1,8 @@
 # TechTree
 My guidebook-ish mod
 
+**note: currently won't build because i am updating the mcmod tool**
+
 ## What does this mod do?
 This mod adds customizable guide pages for tech trees in mod packs. 
 It has a dependency system similar to TC's research system, 
