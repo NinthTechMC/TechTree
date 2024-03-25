@@ -139,6 +139,7 @@ public class GuiPageBuilder {
             String s = parts[i];
             // is this part an item?
             try {
+                System.out.println(s);
                 ParsedItem item = ParsedItem.parse(s);
                 // add item
                 if (builder.length() > 0) {
@@ -146,12 +147,13 @@ public class GuiPageBuilder {
                     builder.setLength(0);
                 }
                 words.add(new GuiItem(item));
-            } catch (ParseException e) { }
-            // not an item
-            if (builder.length() > 0) {
-                builder.append("<|>");
+            } catch (ParseException e) {
+                // not an item
+                if (builder.length() > 0) {
+                    builder.append("<|>");
+                }
+                builder.append(s);
             }
-            builder.append(s);
         }
         // add the rest
         if (builder.length() > 0) {
