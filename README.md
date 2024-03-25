@@ -1,7 +1,5 @@
 # TechTree
-My guidebook-ish mod
-
-**note: currently won't build because i am updating the mcmod tool**
+My guidebook-ish mod. Depends on [LibPiston](https://github.com/NinthTechMC/LibPiston)
 
 ## What does this mod do?
 This mod adds customizable guide pages for tech trees in mod packs. 

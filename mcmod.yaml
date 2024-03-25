@@ -53,7 +53,7 @@ mods: []
 
 # urls or local paths of dev jars to download into libs
 libs:
-- https://github.com/NinthTechMC/LibPiston/releases/download/v1.2.1/LibPiston-1.2.1-deobf.jar
+- https://github.com/NinthTechMC/LibPiston/releases/download/v1.2.2/LibPiston-1.2.2-deobf.jar
 
 # A mapping of properties to override in generated gradle.properties
 # ---
