@@ -2,6 +2,7 @@ package pistonmc.techtree.data;
 
 import java.io.File;
 import java.util.HashMap;
+import libpiston.util.IntervalUnion;
 import pistonmc.techtree.ModMain;
 
 /**

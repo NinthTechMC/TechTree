@@ -2,8 +2,9 @@ package pistonmc.techtree.gui;
 
 import java.util.ArrayList;
 import java.util.List;
+import libpiston.ParseException;
+import libpiston.item.ParsedItem;
 import pistonmc.techtree.adapter.IGuiHost;
-import pistonmc.techtree.data.ItemSpecSingle;
 
 public class GuiPageBuilder {
     /** Object is either String or List<GuiItem> */
@@ -136,37 +137,23 @@ public class GuiPageBuilder {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < parts.length; i++) {
             String s = parts[i];
-            int spaceIndex = parts[i].indexOf(' ');
-            ItemSpecSingle spec = null;
-            int sizeInt = -1;
-            if (spaceIndex > 0) {
-                String item = s.substring(0, spaceIndex);
-                String size = s.substring(spaceIndex + 1);
-                spec = ItemSpecSingle.parse(item);
-                if (spec != null) {
-                    try {
-                        sizeInt = Integer.parseInt(size);
-                    } catch (NumberFormatException e) {
-                        sizeInt = -1;
-                    }
-                }
-            } else {
-                spec = ItemSpecSingle.parse(s);
-                sizeInt = 1;
-            }
-            if (spec != null && sizeInt > 0) {
+            // is this part an item?
+            try {
+                ParsedItem item = ParsedItem.parse(s);
+                // add item
                 if (builder.length() > 0) {
                     words.add(builder.toString());
                     builder.setLength(0);
                 }
-                words.add(new GuiItem(spec, sizeInt));
-            } else {
-                if (builder.length() > 0) {
-                    builder.append("<|>");
-                }
-                builder.append(s);
+                words.add(new GuiItem(item));
+            } catch (ParseException e) { }
+            // not an item
+            if (builder.length() > 0) {
+                builder.append("<|>");
             }
+            builder.append(s);
         }
+        // add the rest
         if (builder.length() > 0) {
             words.add(builder.toString());
         }

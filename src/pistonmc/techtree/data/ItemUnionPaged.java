@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
+import libpiston.ParseException;
+import libpiston.adapter.ISerializer;
+import libpiston.util.IntervalUnion;
 import pistonmc.techtree.ModMain;
-import pistonmc.techtree.adapter.ISerializer;
 
 public class ItemUnionPaged implements ItemUnion {
     private static final int PAGE_SIZE = 1024;
@@ -61,12 +63,13 @@ public class ItemUnionPaged implements ItemUnion {
 		try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
-                ItemSpec item = ItemSpec.parse(line);
-                if (item == null) {
+                try {
+                    ItemSpec item = ItemSpec.parse(line);
+                    this.union(item);
+                } catch (ParseException e) {
+                    e.printStackTrace();
                     ModMain.log.error("Invalid item spec: " + line);
-                    continue;
                 }
-                this.union(item);
             }
         } catch (IOException e) {
             ModMain.error(e);

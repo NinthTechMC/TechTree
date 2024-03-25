@@ -1,7 +1,10 @@
 package pistonmc.techtree.data;
 
-import pistonmc.techtree.adapter.IDeserializer;
-import pistonmc.techtree.adapter.ISerializer;
+import libpiston.ParseException;
+import libpiston.adapter.IDeserializer;
+import libpiston.adapter.ISerializer;
+import libpiston.item.ParsedItem;
+import libpiston.util.IntervalUnion;
 
 /**
  * Specification of an item
@@ -9,29 +12,19 @@ import pistonmc.techtree.adapter.ISerializer;
  * This data means "the modid:name item, with any meta in the union"
  */
 public class ItemSpec {
-    public static ItemSpec EMPTY = new ItemSpec("minecraft", "air", IntervalUnion.parse("*"));
+    public static ItemSpec EMPTY = new ItemSpec("minecraft", "air", IntervalUnion.any());
 
-	public static ItemSpec parse(String input) {
-		String[] parts = input.split(":");
-		if (parts.length < 2) {
-			return null;
-		}
-		String modid = parts[0].trim();
-		String name = parts[1].trim();
-        IntervalUnion meta;
-		if (parts.length > 2) {
-            meta = IntervalUnion.parse(parts[2]);
-            if (meta == null) {
-                return null;
-            }
-		} else {
-            meta = IntervalUnion.parse("*");
-        }
-        return new ItemSpec(modid, name, meta);
+    /**
+     * Parse an item spec from a string like modid:item:meta
+     * @throws ParseException
+     */
+	public static ItemSpec parse(String input) throws ParseException {
+        ParsedItem parsed = ParsedItem.parse(input);
+        return new ItemSpec(parsed.modid, parsed.name, parsed.meta);
 	}
 
-	private String modid;
-	private String name;
+	public final String modid;
+	public final String name;
 	private IntervalUnion meta;
 
 	public ItemSpec(String modid, String name, IntervalUnion meta) {

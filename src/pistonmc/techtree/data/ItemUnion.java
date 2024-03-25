@@ -1,8 +1,7 @@
 package pistonmc.techtree.data;
 
 import java.io.File;
-import java.util.Arrays;
-import pistonmc.techtree.data.IntervalUnion.Interval;
+import libpiston.util.IntervalUnion;
 
 public interface ItemUnion {
     public void clear();
@@ -36,7 +35,7 @@ public interface ItemUnion {
     public default void union(String namespacedId, int meta) {
         IntervalUnion metaUnion = this.getMetaUnionForItem(namespacedId);
         if (metaUnion == null) {
-            metaUnion = new IntervalUnion(Arrays.asList(new Interval(meta, meta)));
+            metaUnion = IntervalUnion.range(meta, meta);
             this.setMetaUnionForItem(namespacedId, metaUnion);
             return;
         }

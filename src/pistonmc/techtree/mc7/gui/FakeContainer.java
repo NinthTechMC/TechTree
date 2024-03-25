@@ -2,6 +2,7 @@ package pistonmc.techtree.mc7.gui;
 
 import java.util.List;
 import cpw.mods.fml.common.registry.GameRegistry;
+import libpiston.item.ParsedItem;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -10,7 +11,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import pistonmc.techtree.ModMain;
-import pistonmc.techtree.data.ItemSpecSingle;
 import pistonmc.techtree.gui.GuiItem;
 
 /**
@@ -42,7 +42,7 @@ public class FakeContainer extends Container implements IInventory {
             GuiItem guiItem = items.get(i);
             ItemStack stack = itemStackFromGuiItem(guiItem);
             if (stack == null) {
-                ModMain.log.warn("Cannot find item to display: " + guiItem.item.getNamespacedId());
+                ModMain.log.warn("Cannot find item to display: " + guiItem.item.modid + ":" + guiItem.item.name);
                 newStacks[i] = null;
             } else {
                 newStacks[i] = stack;
@@ -53,7 +53,7 @@ public class FakeContainer extends Container implements IInventory {
     }
 
     public static ItemStack itemStackFromGuiItem(GuiItem guiItem) {
-        ItemSpecSingle spec = guiItem.item;
+        ParsedItem spec = guiItem.item;
         Item item = GameRegistry.findItem(spec.modid, spec.name);
         if (item == null) {
             // try block?
@@ -66,7 +66,9 @@ public class FakeContainer extends Container implements IInventory {
         if (item == null) {
             return null;
         }
-        return new ItemStack(item, guiItem.stackSize, spec.meta);
+        ItemStack stack =  new ItemStack(item, spec.count, spec.meta.anyValue());
+        stack.setTagCompound(spec.tag);
+        return stack;
     }
 
     @Override

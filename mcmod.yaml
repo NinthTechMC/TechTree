@@ -1,0 +1,79 @@
+template: ntmc-1.7.10 # Changing this will nuke the template project and setup a new one
+
+name: Tech Tree
+modid: techtree
+description: Configurable tech tree guide books
+# Other mcmod.info fields. All are optional
+# url: https://github.com/me/mymod # default is empty
+# update-url: # default is same as url
+authors:
+- Pistonight
+# credits: "" # default is empty
+# logo: "" # default is empty
+# screenshots: [] # default is empty array
+
+# This version will be in mcmod.info and depends on the template, injected into java code
+version: 1.0.0
+# Uncomment if the version used for artifact output should be different
+# ---
+# artifact-version: 1.0.0
+
+# This is auto detected from src directory
+# as the first directory that doesn't contain a single directory
+# If it should be different, uncomment this
+# ---
+# group: pistonmc.mymodid
+
+# This is name.replace(' ', '-') by default
+# If it should be different, uncomment this
+# ---
+# archives-base-name: ExampleMod
+
+# The api package for the -api.jar
+# Uncomment this if you have one
+# ---
+# api: pistonmc.mymodid.api
+
+# Uncomment if you have a coremod. Put the fully qualified name here
+# ---
+# coremod: pistonmc.mymodid.coremod.CoremodPlugin
+
+# The access transformer files. 
+# Remove this if you don't need access transformers
+# ---
+# access-transformers:
+# - my_at.cfg
+
+# The mixin package. Uncomment if you have mixins
+# ---
+# mixins: pistonmc.mymodid.mixins
+
+# urls or local paths of mods to download into the run/mods folder
+mods: []
+
+# urls or local paths of dev jars to download into libs
+libs:
+- https://github.com/NinthTechMC/LibPiston/releases/download/v1.2.1/LibPiston-1.2.1-deobf.jar
+
+# A mapping of properties to override in generated gradle.properties
+# ---
+# gradle-overrides: {}
+
+# Paths to copy to the target directory
+# Each path will be copied to target/{path}. If you want to customize the path in target, use [src, dst]
+# This is useful if you need to override some files in the template, for example dependencies.gradle
+# Directories will be scanned recursively.
+#
+# use "null" as the source to delete a file or directory in the target
+# deletion will happen before copying
+# ---
+copy-paths:
+- ["null", src]
+- [src, src/main/java]
+- [assets, src/main/resources/assets]
+# - [meta, src/main/resources/META-INF]
+# - dependencies.gradle # same as [dependencies.gradle, dependencies.gradle]
+
+# Suffixes to exclude from copying
+# copy-exclude:
+# - _GENERATED.java

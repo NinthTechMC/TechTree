@@ -3,6 +3,7 @@ package pistonmc.techtree.mc7.gui;
 import java.util.List;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
+import libpiston.impl.NBTTagCompoundWrapper;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderHelper;
@@ -19,7 +20,6 @@ import pistonmc.techtree.gui.GuiItem;
 import pistonmc.techtree.gui.GuiState;
 import pistonmc.techtree.gui.GuiTechTree;
 import pistonmc.techtree.mc7.ItemGuideBook;
-import pistonmc.techtree.mc7.data.NBTTagCompoundWrapper;
 
 public class GuiHost extends GuiContainer implements IGuiHost {
     private GuiTechTree gui;

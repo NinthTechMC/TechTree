@@ -101,18 +101,17 @@ For pagination, you can manually insert page breaks with `---` on a line by itse
 
 You can also display items in the text section. The syntax is:
 ```
-<|>modid:name:meta stackSize<|>
+<|>modid:name:meta+NBTxstackSize<|>
 ```
 Examples:
 ```
 <|>minecraft:stone<|>
+<|>minecraft:stone:1+{"display":{"Name":"Stone"}}x64<|>
 <|>minecraft:log:1<|>
-<|>minecraft:log 2<|>
-<|>minecraft:log:2 2<|>
+<|>minecraft:logx2<|>
+<|>minecraft:log:2x2<|>
 ```
 Multiple items can be put in the same line following the same line break practice.
-
-NBT is not supported at the moment.
 
 ### Comments
 With the exception of the text section, content after the first `#` is ignored on all lines.

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import libpiston.ParseException;
 import pistonmc.techtree.ModMain;
 
 public class DataEntry {
@@ -90,16 +91,19 @@ public class DataEntry {
                         title.add(line);
                         break;
                     case ICON:
-                        icon = ItemSpec.parse(line);
-                        if (icon == null) {
+                        try {
+                            icon = ItemSpec.parse(line);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
                             ModMain.log.error("Invalid item spec: " + line);
                         }
                         break;
                     case ITEMS:
-                        ItemSpec item = ItemSpec.parse(line);
-                        if (item != null) {
+                        try {
+                            ItemSpec item = ItemSpec.parse(line);
                             items.add(item);
-                        } else {
+                        } catch (ParseException e) {
+                            e.printStackTrace();
                             ModMain.log.error("Invalid item spec: " + line);
                         }
                         break;

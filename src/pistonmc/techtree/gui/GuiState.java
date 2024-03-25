@@ -1,7 +1,7 @@
 package pistonmc.techtree.gui;
 
-import pistonmc.techtree.adapter.IMapReader;
-import pistonmc.techtree.adapter.IMapWriter;
+import libpiston.adapter.IMapReader;
+import libpiston.adapter.IMapWriter;
 
 public class GuiState {
     /** If debug mode is enabled */
@@ -65,6 +65,13 @@ public class GuiState {
     }
 
     public void handleEnterCategory(String id) {
+        if (id.equals("index")) {
+            this.handleReturnToIndex();
+            return;
+        }
+        if (id.isEmpty()) {
+            id = null;
+        }
         this.currentPage = id;
         this.indexListStart = this.currentListStart;
         this.currentListStart = 0;
@@ -85,6 +92,9 @@ public class GuiState {
 
     public void readFromMap(IMapReader reader) {
         this.currentPage = reader.readString("currentPage");
+        if (this.currentPage.isEmpty()) {
+            this.currentPage = null;
+        }
         this.indexListStart = reader.readInt("indexListStart");
         this.currentListStart = reader.readInt("currentListStart");
         this.currentContentPage = reader.readInt("currentContentPage");

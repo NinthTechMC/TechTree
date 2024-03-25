@@ -1,8 +1,8 @@
 package pistonmc.techtree.event;
 
-import pistonmc.techtree.adapter.IDeserializer;
+import libpiston.adapter.IDeserializer;
+import libpiston.adapter.ISerializer;
 import pistonmc.techtree.adapter.IPlayerServerSide;
-import pistonmc.techtree.adapter.ISerializer;
 
 /**
  * A message that can be sent between client and server

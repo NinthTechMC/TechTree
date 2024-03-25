@@ -3,6 +3,7 @@ package pistonmc.techtree.mc7;
 import java.util.List;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import libpiston.impl.NBTTagCompoundWrapper;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -19,7 +20,6 @@ import pistonmc.techtree.ModInfo;
 import pistonmc.techtree.gui.GuiState;
 import pistonmc.techtree.gui.GuiTechTree;
 import pistonmc.techtree.item.GuideBook;
-import pistonmc.techtree.mc7.data.NBTTagCompoundWrapper;
 
 public class ItemGuideBook extends Item {
     public static final String NAME = "itemTTGuideBook";

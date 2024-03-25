@@ -7,6 +7,7 @@ import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
+import libpiston.impl.ByteBufWrapper;
 import net.minecraft.entity.player.EntityPlayerMP;
 import pistonmc.techtree.ModInfo;
 import pistonmc.techtree.ModMain;
@@ -15,7 +16,6 @@ import pistonmc.techtree.adapter.INetworkServer;
 import pistonmc.techtree.adapter.IPlayerServerSide;
 import pistonmc.techtree.event.Msg;
 import pistonmc.techtree.event.MsgRegistry;
-import pistonmc.techtree.mc7.data.ByteBufWrapper;
 
 public class Network implements INetworkClient<Msg>, INetworkServer<Msg> {
     public boolean initialized = false;

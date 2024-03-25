@@ -1,8 +1,8 @@
 package pistonmc.techtree.event;
 
+import libpiston.adapter.IDeserializer;
+import libpiston.adapter.ISerializer;
 import pistonmc.techtree.ModMain;
-import pistonmc.techtree.adapter.IDeserializer;
-import pistonmc.techtree.adapter.ISerializer;
 import pistonmc.techtree.data.ItemSpecSingle;
 
 /**

@@ -1,16 +1,19 @@
 package pistonmc.techtree.gui;
 
-import pistonmc.techtree.data.ItemSpecSingle;
+import libpiston.item.ParsedItem;
+import pistonmc.techtree.data.ItemSpec;
 
 public class GuiItem {
     /** (x,y) relative to the top-left corner of the GUI */
     public int x;
     public int y;
-    public ItemSpecSingle item;
-    public int stackSize;
+    public ParsedItem item;
 
-    public GuiItem(ItemSpecSingle item, int stackSize) {
+    public GuiItem(ParsedItem item) {
         this.item = item;
-        this.stackSize = stackSize;
+    }
+
+    public GuiItem(ItemSpec item, int stackSize) {
+        this.item = new ParsedItem(item.modid, item.name, item.getMeta(), null, stackSize);
     }
 }

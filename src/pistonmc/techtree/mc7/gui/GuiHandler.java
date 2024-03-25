@@ -1,6 +1,7 @@
 package pistonmc.techtree.mc7.gui;
 
 import cpw.mods.fml.common.network.IGuiHandler;
+import libpiston.impl.NBTTagCompoundWrapper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -9,7 +10,6 @@ import pistonmc.techtree.data.ProgressClient;
 import pistonmc.techtree.gui.GuiState;
 import pistonmc.techtree.gui.GuiTechTree;
 import pistonmc.techtree.mc7.ItemGuideBook;
-import pistonmc.techtree.mc7.data.NBTTagCompoundWrapper;
 
 public class GuiHandler implements IGuiHandler{
     private ProgressClient progress;

@@ -2,10 +2,10 @@ package pistonmc.techtree.event;
 
 import java.util.ArrayList;
 import java.util.List;
+import libpiston.adapter.IDeserializer;
+import libpiston.adapter.ISerializer;
 import pistonmc.techtree.ModMain;
-import pistonmc.techtree.adapter.IDeserializer;
 import pistonmc.techtree.adapter.IPlayerServerSide;
-import pistonmc.techtree.adapter.ISerializer;
 
 /**
  * Message sent to server to notify new unread pages

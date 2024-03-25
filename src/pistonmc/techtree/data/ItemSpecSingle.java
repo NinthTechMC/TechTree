@@ -1,7 +1,8 @@
 package pistonmc.techtree.data;
 
-import pistonmc.techtree.adapter.IDeserializer;
-import pistonmc.techtree.adapter.ISerializer;
+import libpiston.ParseException;
+import libpiston.adapter.IDeserializer;
+import libpiston.adapter.ISerializer;
 
 /**
  * Specification of an item with a single meta
@@ -44,11 +45,7 @@ public class ItemSpecSingle {
         return new ItemSpecSingle(modid, name, meta);
     }
 
-    public static ItemSpecSingle parse(String input) {
-        ItemSpec spec = ItemSpec.parse(input);
-        if (spec == null) {
-            return null;
-        }
-        return spec.toSingle();
+    public static ItemSpecSingle parse(String input) throws ParseException {
+        return ItemSpec.parse(input).toSingle();
     }
 }

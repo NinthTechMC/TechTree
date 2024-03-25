@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import pistonmc.techtree.adapter.IDeserializer;
-import pistonmc.techtree.adapter.ISerializer;
+import libpiston.adapter.IDeserializer;
+import libpiston.adapter.ISerializer;
 
 public class MsgRegistry {
     private byte nextId = 0;

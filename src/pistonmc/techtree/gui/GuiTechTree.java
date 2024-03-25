@@ -3,10 +3,9 @@ package pistonmc.techtree.gui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+import libpiston.adapter.IMapReader;
+import libpiston.adapter.IMapWriter;
 import pistonmc.techtree.adapter.IGuiHost;
-import pistonmc.techtree.adapter.IMapReader;
-import pistonmc.techtree.adapter.IMapWriter;
 import pistonmc.techtree.data.CategoryData;
 import pistonmc.techtree.data.DataEntry;
 import pistonmc.techtree.data.ItemData;
@@ -329,7 +328,7 @@ public class GuiTechTree {
             if (category == null) {
                 return true;
             }
-            GuiItem item = new GuiItem(category.data.icon.toSingle(), 1);
+            GuiItem item = new GuiItem(category.data.icon, 1);
             item.x = left + GuiConstants.CATEGORY_ITEM_X;
             item.y = top + i * GuiConstants.CATEGORY_HEIGHT + GuiConstants.CATEGORY_ITEM_Y;
             CategoryState state = this.progress.getCategoryState(category.id);
@@ -517,7 +516,7 @@ public class GuiTechTree {
                 return true;
             }
             ItemState state = this.progress.getItemState(item.id);
-            GuiItem guiItem = new GuiItem(item.data.icon.toSingle(), 1);
+            GuiItem guiItem = new GuiItem(item.data.icon, 1);
             guiItem.x = left + c * GuiConstants.GRID_ITEM_SIZE;
             guiItem.y = top + r * GuiConstants.GRID_ITEM_SIZE;
             if (state.shouldDisplayDarkened()) {
@@ -770,7 +769,7 @@ public class GuiTechTree {
             DataEntry data = this.progress.getData(pageId);
             if (data != null) {
                 this.currentPageTitle = data.title.length > 0 ? data.title[0] : "";
-                this.currentPageItem = new GuiItem(data.icon.toSingle(), 1);
+                this.currentPageItem = new GuiItem(data.icon, 1);
                 this.currentPageItem.x = GuiConstants.PAGE_ITEM_X;
                 this.currentPageItem.y = GuiConstants.PAGE_ITEM_Y;
             } else {
